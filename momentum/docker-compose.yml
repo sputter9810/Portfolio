@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  momentum-db:
+    image: postgres:16
+    container_name: momentum-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: momentum
+      POSTGRES_USER: momentum_user
+      POSTGRES_PASSWORD: momentum_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - momentum_pgdata:/var/lib/postgresql/data
+
+volumes:
+  momentum_pgdata:

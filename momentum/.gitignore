@@ -1,0 +1,28 @@
+# General
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+*.env
+
+# IntelliJ / IDE
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Java / Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# OS files
+Desktop.ini
