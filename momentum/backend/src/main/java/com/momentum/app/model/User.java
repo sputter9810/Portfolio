@@ -20,10 +20,16 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public User() {}
+    public User() {
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     public User(String email, String password, String name) {
         this.email = email;
@@ -31,8 +37,6 @@ public class User {
         this.name = name;
         this.createdAt = LocalDateTime.now();
     }
-
-    // Getters & Setters
 
     public Long getId() {
         return id;
