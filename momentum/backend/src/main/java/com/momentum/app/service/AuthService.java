@@ -1,6 +1,7 @@
 package com.momentum.app.service;
 
 import com.momentum.app.dto.auth.AuthResponse;
+import com.momentum.app.dto.auth.LoginRequest;
 import com.momentum.app.dto.auth.RegisterRequest;
 import com.momentum.app.model.User;
 import com.momentum.app.repository.UserRepository;
@@ -35,6 +36,24 @@ public class AuthService {
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail()
+        );
+    }
+
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+
+        if (!passwordMatches) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return new AuthResponse(
+                "Login successful",
+                user.getId(),
+                user.getName(),
+                user.getEmail()
         );
     }
 }
