@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<ApiErrorResponse> handleResourceAlreadyExists(
-            ResourceAlreadyExistsException ex,
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorResponse> handleEmailAlreadyExists(
+            EmailAlreadyExistsException ex,
             HttpServletRequest request) {
 
         ApiErrorResponse error = new ApiErrorResponse(

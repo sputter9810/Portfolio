@@ -17,32 +17,36 @@ public class AuthResponse {
         this.email = email;
     }
 
-    public String getMessage() {
-        return message;
+    public static AuthResponse of(String message, Long userId, String name, String email) {
+        return new AuthResponse(message, userId, name, email);
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public String getMessage() {
+        return message;
     }
 
     public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getEmail() {
         return email;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setEmail(String email) {

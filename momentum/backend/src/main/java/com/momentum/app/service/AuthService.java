@@ -3,8 +3,8 @@ package com.momentum.app.service;
 import com.momentum.app.dto.auth.AuthResponse;
 import com.momentum.app.dto.auth.LoginRequest;
 import com.momentum.app.dto.auth.RegisterRequest;
+import com.momentum.app.exception.EmailAlreadyExistsException;
 import com.momentum.app.exception.InvalidCredentialsException;
-import com.momentum.app.exception.ResourceAlreadyExistsException;
 import com.momentum.app.model.User;
 import com.momentum.app.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +23,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new ResourceAlreadyExistsException("Email is already in use");
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
 
         User user = new User();
@@ -33,7 +33,7 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        return new AuthResponse(
+        return AuthResponse.of(
                 "User registered successfully",
                 savedUser.getId(),
                 savedUser.getName(),
@@ -51,7 +51,7 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        return new AuthResponse(
+        return AuthResponse.of(
                 "Login successful",
                 user.getId(),
                 user.getName(),
