@@ -49,27 +49,33 @@ POST /api/auth/register
   "email": "sam@example.com",
   "password": "password123"
 }
+```
 
 ### Login User
 POST /api/auth/login
 
 **Request Body**
+```json
 {
   "email": "sam@example.com",
   "password": "password123"
 }
+```
 
 ## 📊 Expected Responses
 
 ### ✅ Success (Register/Login)
+```json
 {
   "message": "Success message",
   "userId": 1,
   "name": "Sam Briggs",
   "email": "sam@example.com"
 }
+```
 
 ### ❌ Error Response
+```json
 {
   "timestamp": "2026-04-21T13:10:00",
   "status": 400,
@@ -77,6 +83,7 @@ POST /api/auth/login
   "message": "Validation or error message",
   "path": "/api/auth/register"
 }
+```
 
 ## 🛠️ Tech Stack
 Java 17
