@@ -1,70 +1,126 @@
 # Momentum
 
-Momentum is a personal productivity platform designed for students and early-career professionals to organise tasks, schedules, and resources in one unified system.
+Momentum is a full-stack productivity application designed to help users manage tasks, events, and focused work sessions.
 
-## 🚀 Overview
+This project is being developed as part of a structured portfolio roadmap to demonstrate real-world backend and full-stack development skills.
 
-Momentum combines task management, calendar scheduling, focused work sessions, and resource storage into a single application. It aims to reduce fragmentation across multiple tools and provide a structured workflow for planning and execution.
+---
 
-## 🎯 Goals
+## 🚀 Features (Current)
 
-* Provide a centralised workspace for planning and execution
-* Help users track tasks, deadlines, and commitments
-* Enable structured focus sessions
-* Allow resources to be attached directly to work items
-* Deliver a clean and intuitive user experience
+### 🔐 Authentication System
+- User registration
+- User login
+- Password hashing using BCrypt
+- Validation using annotations
+- Structured error handling with HTTP status codes
 
-## 🧑‍💻 Target Users
+### 🧱 Backend Architecture
+- Spring Boot REST API
+- Layered architecture:
+  - Controller
+  - Service
+  - Repository
+  - DTO
+  - Exception handling
 
-* University students
-* Internship seekers
-* Early-career professionals
-* Self-directed learners
+### 🗄️ Database
+- PostgreSQL (Dockerised)
+- JPA / Hibernate integration
+- Automatic schema generation
 
-## 🛠️ Tech Stack (Planned)
+---
 
-### Backend
+## 🧪 API Endpoints
 
-* Java
-* Spring Boot
-* Spring Data JPA
-* Spring Security
-* PostgreSQL
+### Health Check
+GET /api/health
 
-### Frontend
+---
 
-* React (planned)
+### Register User
+POST /api/auth/register
 
-### Infrastructure
 
-* Docker
-* REST API architecture
+**Request Body**
+```json
+{
+  "name": "Sam Briggs",
+  "email": "sam@example.com",
+  "password": "password123"
+}
 
-## 📦 Project Structure
+### Login User
+POST /api/auth/login
 
-momentum/
-├── backend/
-├── frontend/
-├── docs/
-└── README.md
+**Request Body**
+{
+  "email": "sam@example.com",
+  "password": "password123"
+}
 
-## 📌 Current Status
+## 📊 Expected Responses
 
-🚧 Project is in early development (Week 1 – Planning & Setup)
+### ✅ Success (Register/Login)
+{
+  "message": "Success message",
+  "userId": 1,
+  "name": "Sam Briggs",
+  "email": "sam@example.com"
+}
 
-## 📈 Roadmap
+### ❌ Error Response
+{
+  "timestamp": "2026-04-21T13:10:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation or error message",
+  "path": "/api/auth/register"
+}
 
-* Week 1: Product definition and architecture planning
-* Week 2–3: Backend scaffolding and authentication
-* Month 2: Core feature implementation
-* Month 3: Production polish and deployment
+## 🛠️ Tech Stack
+Java 17
+Spring Boot
+Spring Security
+PostgreSQL
+Docker
+Maven
 
-## 📄 Documentation
+## ⚙️ Running the Project
+**1. Start database**
+docker compose up -d
 
-See the `/docs` folder for detailed design and planning documents.
+**2. Run backend**
+cd backend
+./mvnw spring-boot:run
 
-## 🧠 Author
+**3. Test API**
+Open in browser or Postman:
+http://localhost:8080/api/health
 
-Sam Briggs – Bachelor of Software Engineering (UON)
+## 📁 Project Structure
+backend/src/main/java/com/momentum/app
+├── config
+├── controller
+├── dto
+├── exception
+├── model
+├── repository
+├── service
+└── MomentumApplication.java
 
-This project is part of a portfolio initiative to demonstrate real-world software engineering skills.
+## 📌 Future Improvements
+JWT authentication
+Task management system
+Event scheduling
+Frontend integration (React)
+Dashboard & analytics
+
+## 📖 Purpose
+
+This project is part of a structured 9-month portfolio roadmap focused on building production-ready applications using modern development practices.
+
+👤 Author
+
+Sam Briggs
+Bachelor of Software Engineering – University of Newcastle
