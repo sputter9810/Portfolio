@@ -1,38 +1,123 @@
 # Game Rotation Manager
 
-A small local web app for managing a video game backlog and deciding what to play next.
+A small local web app for managing a video game backlog, maintaining an active game rotation, and deciding what to play next.
+
+## Version
+
+v0.2.0
+
+## Purpose
+
+This project helps manage a growing game backlog by separating:
+
+- Game type
+- Current rotation slot
+- Progress status
+
+It is designed around a simple active trio:
+
+- Main
+- Side
+- Casual
+
+Games outside the active trio can sit in:
+
+- Backlog
+- Paused
+- Completed
 
 ## Features
 
-- Add games to a backlog
-- Track category, platform, rotation type, status, progress, and notes
-- Filter by category and status
-- View basic dashboard statistics
-- Get a simple game recommendation
-- Save data locally using browser localStorage
-
-## Rotation Types
-
-- Main: primary focus game
-- Side: secondary game
-- Casual: low-commitment game
-
-## Current Version
-
-v0.1.0
+- Add, edit, and delete games
+- Track game type, rotation slot, status, progress, and notes
+- Original 9 game categories:
+  - Stealth
+  - TTRPG
+  - Turn Based
+  - Open World
+  - Story-Based
+  - Survival
+  - Rogue
+  - Souls-like
+  - Horror
+- Active rotation slots:
+  - Main
+  - Side
+  - Casual
+- Backlog and paused game management
+- One active game per Main / Side / Casual slot
+- Smart rotation suggestion
+- Apply suggested rotation
+- Preserve existing active games when suggesting a new rotation
+- Focus Mode to show only active rotation games
+- Progress controls:
+  - -10%
+  - +5%
+  - +10%
+  - Set 100%
+- Search and filters
+- Local browser saving with `localStorage`
+- Export backup as JSON
+- Import backup from JSON
 
 ## How to Run
 
-Open `index.html` in your browser.
+Open `index.html` in a browser.
 
-No install required.
+No server, build step, or installation is required.
 
-## Planned Improvements
+## Data Model
 
-- Edit existing games
-- Better recommendation scoring
-- Search bar
-- Export/import data
-- Completion goals
-- 100% tracking
-- Rotation schedule view
+Each game stores:
+
+```js
+{
+  id: string,
+  title: string,
+  gameType: string,
+  rotationSlot: string,
+  status: string,
+  progress: number,
+  notes: string
+}
+```
+
+## Rotation Logic
+
+The app supports two recommendation modes.
+
+### What should I play now?
+
+This recommends from the current active rotation first.
+
+If no active games exist, it considers playable backlog and paused games.
+
+### Suggest Rotation
+
+This maintains the active trio.
+
+It preserves existing playable Main / Side / Casual games and only fills missing slots from the backlog or paused games.
+
+For example, if Main is completed but Side and Casual are still active, the app will suggest a new Main while keeping the existing Side and Casual.
+
+## Backup System
+
+Use Export Backup to download your current game data as a JSON file.
+
+Use Import Backup to restore a previous backup.
+
+## Current Limitations
+- Data is local to the browser unless exported manually
+- No cloud sync
+- No Steam API integration
+- No date tracking or play history
+- No charts yet
+
+## Future Ideas
+- Last played date
+- Rotation history
+- Steam store/library links
+- Completion notes
+- Dashboard charts
+- Achievement tracking
+- Deployed hosted version

@@ -84,16 +84,37 @@
         </div>
       </div>
 
-      <button id="recommendBtn" class="secondary-button">What should I play next?</button>
+      <div class="dashboard-actions">
+        <button id="recommendBtn" class="secondary-button">What should I play now?</button>
+        <button id="suggestRotationBtn" class="secondary-button">Suggest Rotation</button>
+      </div>
+
+      <div class="dashboard-actions">
+        <button id="exportBtn" class="secondary-button">Export Backup</button>
+
+        <label class="import-label">
+          Import Backup
+          <input id="importInput" type="file" accept=".json" />
+        </label>
+      </div>
 
       <div id="recommendation" class="recommendation-card">
         <p>No recommendation yet.</p>
+      </div>
+
+      <div id="rotationSuggestion" class="recommendation-card hidden">
+        <p>No rotation suggestion yet.</p>
       </div>
     </section>
 
     <section class="panel list-panel">
       <div class="list-header">
         <h2>Games</h2>
+
+        <label class="focus-toggle">
+          <input id="focusModeToggle" type="checkbox" />
+          Focus Mode
+        </label>
 
         <div class="filters">
           <input id="searchInput" type="text" placeholder="Search games..." />
