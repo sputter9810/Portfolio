@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Rotation Manager</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Game Rotation Manager</h1>
+      <p>Track your backlog, manage your active trio, and pick what to play next.</p>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <section class="panel">
+      <h2 id="formTitle">Add Game</h2>
+
+      <form id="gameForm" class="game-form">
+        <input id="title" type="text" placeholder="Game title" required />
+
+        <select id="gameType" required>
+          <option value="">Game type</option>
+          <option>Stealth</option>
+          <option>TTRPG</option>
+          <option>Turn Based</option>
+          <option>Open World</option>
+          <option>Story-Based</option>
+          <option>Survival</option>
+          <option>Rogue</option>
+          <option>Souls-like</option>
+          <option>Horror</option>
+        </select>
+
+        <select id="rotationSlot" required>
+          <option value="">Rotation slot</option>
+          <option>Main</option>
+          <option>Side</option>
+          <option>Casual</option>
+          <option>Backlog</option>
+          <option>Paused</option>
+          <option>Completed</option>
+        </select>
+
+        <select id="status" required>
+          <option value="">Status</option>
+          <option>Not Started</option>
+          <option>Playing</option>
+          <option>Paused</option>
+          <option>Completed</option>
+          <option>100% Complete</option>
+        </select>
+
+        <input id="progress" type="number" min="0" max="100" placeholder="Progress %" />
+
+        <textarea id="notes" placeholder="Notes, goals, current objective..."></textarea>
+
+        <button id="submitBtn" type="submit">Add Game</button>
+        <button id="cancelEditBtn" type="button" class="secondary-button hidden">Cancel Edit</button>
+      </form>
+    </section>
+
+    <section class="panel dashboard-panel">
+      <h2>Dashboard</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span id="totalGames">0</span>
+          <p>Total Games</p>
+        </div>
+        <div class="stat-card">
+          <span id="activeRotationGames">0</span>
+          <p>Active Rotation</p>
+        </div>
+        <div class="stat-card">
+          <span id="backlogGames">0</span>
+          <p>Backlog</p>
+        </div>
+        <div class="stat-card">
+          <span id="hundredPercentGames">0</span>
+          <p>100% Complete</p>
+        </div>
+      </div>
+
+      <button id="recommendBtn" class="secondary-button">What should I play next?</button>
+
+      <div id="recommendation" class="recommendation-card">
+        <p>No recommendation yet.</p>
+      </div>
+    </section>
+
+    <section class="panel list-panel">
+      <div class="list-header">
+        <h2>Games</h2>
+
+        <div class="filters">
+          <input id="searchInput" type="text" placeholder="Search games..." />
+
+          <select id="gameTypeFilter">
+            <option value="All">All Types</option>
+            <option>Stealth</option>
+            <option>TTRPG</option>
+            <option>Turn Based</option>
+            <option>Open World</option>
+            <option>Story-Based</option>
+            <option>Survival</option>
+            <option>Rogue</option>
+            <option>Souls-like</option>
+            <option>Horror</option>
+          </select>
+
+          <select id="rotationSlotFilter">
+            <option value="All">All Rotation Slots</option>
+            <option>Main</option>
+            <option>Side</option>
+            <option>Casual</option>
+            <option>Backlog</option>
+            <option>Paused</option>
+            <option>Completed</option>
+          </select>
+
+          <select id="statusFilter">
+            <option value="All">All Statuses</option>
+            <option>Not Started</option>
+            <option>Playing</option>
+            <option>Paused</option>
+            <option>Completed</option>
+            <option>100% Complete</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="gameList" class="game-list"></div>
+    </section>
+  </main>
+
+  <script src="assets/js/games.js"></script>
+  <script src="assets/js/rotation.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
