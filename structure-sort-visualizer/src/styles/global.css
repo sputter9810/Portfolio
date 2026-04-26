@@ -1,0 +1,612 @@
+:root {
+  font-family:
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e5edf7;
+  background: #0b1020;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button,
+select {
+  border: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 32px;
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.24), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.18), transparent 28rem),
+    #0b1020;
+}
+
+.app-header {
+  max-width: 1180px;
+  margin: 0 auto 24px;
+  padding: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.76);
+  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.22);
+}
+
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 12px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  letter-spacing: -0.06em;
+}
+
+h2 {
+  margin-bottom: 8px;
+}
+
+h3 {
+  margin-bottom: 8px;
+}
+
+h4 {
+  margin-bottom: 10px;
+}
+
+p {
+  color: #aebbd0;
+  line-height: 1.6;
+}
+
+.eyebrow,
+.section-label {
+  margin: 0 0 8px;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.panel {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  background: rgba(15, 23, 42, 0.82);
+  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.2);
+}
+
+.panel-heading {
+  margin-bottom: 18px;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.tab {
+  padding: 11px 16px;
+  border-radius: 13px;
+  color: #cbd5e1;
+  background: #1e293b;
+  font-weight: 800;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  color: white;
+}
+
+.visualizer-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-areas:
+    "controls chart"
+    "info chart"
+    "comparison comparison";
+  gap: 18px;
+  align-items: stretch;
+}
+
+.controls-panel {
+  grid-area: controls;
+  padding: 22px;
+}
+
+.chart-panel {
+  grid-area: chart;
+  display: flex;
+  flex-direction: column;
+  min-height: 560px;
+  padding: 22px;
+}
+
+.info-panel {
+  grid-area: info;
+  padding: 22px;
+}
+
+.comparison-panel {
+  grid-area: comparison;
+  padding: 22px;
+}
+
+.control-grid {
+  display: grid;
+  gap: 16px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+select,
+.number-input {
+  width: 100%;
+  padding: 10px 12px;
+  color: #e5edf7;
+  border-radius: 12px;
+  background: #111827;
+  outline: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #38bdf8;
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+button {
+  padding: 11px 14px;
+  border-radius: 13px;
+  color: #e5edf7;
+  background: #1e293b;
+  font-weight: 800;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #334155;
+}
+
+button.primary {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+}
+
+button.danger {
+  background: linear-gradient(135deg, #dc2626, #ea580c);
+}
+
+.chart-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.data-pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.9);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.chart {
+  flex: 1;
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  min-height: 440px;
+  padding: 22px;
+  border-radius: 18px;
+  background:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    rgba(2, 6, 23, 0.72);
+  background-size: 40px 40px;
+  overflow: hidden;
+}
+
+.bar {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 4px;
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(180deg, #38bdf8, #2563eb);
+  transition:
+    height 0.12s ease,
+    background 0.12s ease,
+    transform 0.12s ease;
+}
+
+.bar span {
+  position: absolute;
+  bottom: 6px;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 800;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.bar.compare {
+  background: linear-gradient(180deg, #facc15, #f97316);
+  transform: translateY(-6px);
+}
+
+.bar.swap {
+  background: linear-gradient(180deg, #fb7185, #e11d48);
+  transform: translateY(-8px);
+}
+
+.bar.overwrite {
+  background: linear-gradient(180deg, #a78bfa, #7c3aed);
+  transform: translateY(-6px);
+}
+
+.bar.pivot {
+  background: linear-gradient(180deg, #f472b6, #db2777);
+  transform: translateY(-8px);
+}
+
+.bar.sorted {
+  background: linear-gradient(180deg, #4ade80, #16a34a);
+}
+
+.step-description {
+  margin-top: 16px;
+  min-height: 50px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.complexity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.complexity-grid div {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.complexity-grid strong,
+.complexity-grid span {
+  display: block;
+}
+
+.complexity-grid strong {
+  margin-bottom: 6px;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.complexity-grid span {
+  color: #f8fafc;
+  font-weight: 900;
+}
+
+.complexity-explainer {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.16);
+}
+
+.legend {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  color: #cbd5e1;
+}
+
+.legend div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+}
+
+.legend-box.compare {
+  background: #facc15;
+}
+
+.legend-box.swap {
+  background: #fb7185;
+}
+
+.legend-box.overwrite {
+  background: #a78bfa;
+}
+
+.legend-box.pivot {
+  background: #f472b6;
+}
+
+.legend-box.sorted {
+  background: #4ade80;
+}
+
+.comparison-table {
+  display: grid;
+  gap: 8px;
+}
+
+.comparison-row {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.44);
+}
+
+.comparison-row.header {
+  color: #f8fafc;
+  background: rgba(30, 41, 59, 0.92);
+  font-weight: 900;
+}
+
+.ds-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-areas:
+    "controls display"
+    "info display";
+  gap: 18px;
+  align-items: stretch;
+}
+
+.ds-controls {
+  grid-area: controls;
+  padding: 22px;
+}
+
+.ds-display-panel {
+  grid-area: display;
+  display: flex;
+  flex-direction: column;
+  min-height: 560px;
+  padding: 22px;
+}
+
+.ds-display {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 440px;
+  padding: 24px;
+  border-radius: 18px;
+  background:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    rgba(2, 6, 23, 0.72);
+  background-size: 40px 40px;
+  overflow: auto;
+}
+
+.operation-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.mini-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.ds-linear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ds-linear.stack {
+  flex-direction: column-reverse;
+}
+
+.ds-node,
+.tree-node {
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 12px;
+  border-radius: 18px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  font-weight: 900;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.ds-node small {
+  margin-top: 4px;
+  color: #dbeafe;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ds-node.active,
+.tree-node.active {
+  background: linear-gradient(135deg, #f97316, #e11d48);
+  transform: scale(1.06);
+}
+
+.linked-list-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.linked-node-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.arrow {
+  margin: 0 12px;
+  color: #38bdf8;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.tree-canvas {
+  position: relative;
+  width: 100%;
+  min-width: 760px;
+  max-width: 1000px;
+  height: 540px;
+  margin: 0 auto;
+}
+
+.tree-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tree-line {
+  stroke: rgba(226, 232, 240, 0.78);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.tree-node-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.tree-node {
+  position: absolute;
+  min-width: 58px;
+  min-height: 58px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+
+.tree-node.active {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.empty-state {
+  padding: 18px 22px;
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  border-radius: 16px;
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+@media (max-width: 920px) {
+  .app {
+    padding: 18px;
+  }
+
+  .visualizer-shell,
+  .ds-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "controls"
+      "chart"
+      "info"
+      "comparison";
+  }
+
+  .ds-shell {
+    grid-template-areas:
+      "controls"
+      "display"
+      "info";
+  }
+
+  .chart-panel,
+  .ds-display-panel {
+    min-height: 480px;
+  }
+
+  .comparison-row {
+    grid-template-columns: 1fr;
+  }
+}
