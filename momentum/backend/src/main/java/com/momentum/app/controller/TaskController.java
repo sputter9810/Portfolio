@@ -3,6 +3,7 @@ package com.momentum.app.controller;
 import com.momentum.app.dto.task.CreateTaskRequest;
 import com.momentum.app.dto.task.TaskResponse;
 import com.momentum.app.dto.task.UpdateTaskRequest;
+import com.momentum.app.model.TaskStatus;
 import com.momentum.app.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -25,25 +26,39 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskResponse> getAllTasks() {
-        return taskService.getAllTasks();
+    public List<TaskResponse> getAllTasks(
+            @RequestParam Long userId,
+            @RequestParam(required = false) TaskStatus status
+    ) {
+        if (status != null) {
+            return taskService.getTasksByStatus(userId, status);
+        }
+
+        return taskService.getAllTasks(userId);
     }
 
     @GetMapping("/{id}")
-    public TaskResponse getTaskById(@PathVariable Long id) {
-        return taskService.getTaskById(id);
+    public TaskResponse getTaskById(
+            @PathVariable Long id,
+            @RequestParam Long userId
+    ) {
+        return taskService.getTaskById(id, userId);
     }
 
     @PutMapping("/{id}")
     public TaskResponse updateTask(
             @PathVariable Long id,
+            @RequestParam Long userId,
             @Valid @RequestBody UpdateTaskRequest request
     ) {
-        return taskService.updateTask(id, request);
+        return taskService.updateTask(id, userId, request);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTask(@PathVariable Long id) {
-        taskService.deleteTask(id);
+    public void deleteTask(
+            @PathVariable Long id,
+            @RequestParam Long userId
+    ) {
+        taskService.deleteTask(id, userId);
     }
 }

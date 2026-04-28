@@ -21,16 +21,21 @@ public class Task {
     @Column(nullable = false)
     private TaskStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public Task() {
     }
 
-    public Task(String title, String description, TaskStatus status) {
+    public Task(String title, String description, TaskStatus status, User user) {
         this.title = title;
         this.description = description;
         this.status = status;
+        this.user = user;
     }
 
     @PrePersist
@@ -68,6 +73,14 @@ public class Task {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public LocalDateTime getCreatedAt() {

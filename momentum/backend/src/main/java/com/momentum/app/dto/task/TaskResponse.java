@@ -11,16 +11,18 @@ public class TaskResponse {
     private String title;
     private String description;
     private TaskStatus status;
+    private Long userId;
     private LocalDateTime createdAt;
 
     public TaskResponse() {
     }
 
-    public TaskResponse(Long id, String title, String description, TaskStatus status, LocalDateTime createdAt) {
+    public TaskResponse(Long id, String title, String description, TaskStatus status, Long userId, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.status = status;
+        this.userId = userId;
         this.createdAt = createdAt;
     }
 
@@ -30,6 +32,7 @@ public class TaskResponse {
                 task.getTitle(),
                 task.getDescription(),
                 task.getStatus(),
+                task.getUser().getId(),
                 task.getCreatedAt()
         );
     }
@@ -50,6 +53,10 @@ public class TaskResponse {
         return status;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -68,6 +75,10 @@ public class TaskResponse {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
