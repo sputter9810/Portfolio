@@ -7,6 +7,8 @@ import com.momentum.app.model.TaskStatus;
 import com.momentum.app.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.List;
 
@@ -55,6 +57,7 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(
             @PathVariable Long id,
             @RequestParam Long userId
