@@ -62,6 +62,21 @@ POST /api/auth/login
 }
 ```
 
+---
+
+### Create Task
+POST /api/tasks
+
+```json
+{
+  "title": "Example task",
+  "description": "Task description",
+  "userId": 1
+}
+```
+
+---
+
 ## 📊 Expected Responses
 
 ### ✅ Success (Register/Login)
@@ -84,6 +99,7 @@ POST /api/auth/login
   "path": "/api/auth/register"
 }
 ```
+---
 
 ## 🛠️ Tech Stack
 Java 17
