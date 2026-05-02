@@ -6,19 +6,21 @@ public class AuthResponse {
     private Long userId;
     private String name;
     private String email;
+    private String token;
 
     public AuthResponse() {
     }
 
-    public AuthResponse(String message, Long userId, String name, String email) {
+    public AuthResponse(String message, Long userId, String name, String email, String token) {
         this.message = message;
         this.userId = userId;
         this.name = name;
         this.email = email;
+        this.token = token;
     }
 
-    public static AuthResponse of(String message, Long userId, String name, String email) {
-        return new AuthResponse(message, userId, name, email);
+    public static AuthResponse of(String message, Long userId, String name, String email, String token) {
+        return new AuthResponse(message, userId, name, email, token);
     }
 
     public String getMessage() {
@@ -37,6 +39,10 @@ public class AuthResponse {
         return email;
     }
 
+    public String getToken() {
+        return token;
+    }
+
     public void setMessage(String message) {
         this.message = message;
     }
@@ -51,5 +57,9 @@ public class AuthResponse {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

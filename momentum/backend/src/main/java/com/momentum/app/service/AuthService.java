@@ -7,6 +7,7 @@ import com.momentum.app.exception.EmailAlreadyExistsException;
 import com.momentum.app.exception.InvalidCredentialsException;
 import com.momentum.app.model.User;
 import com.momentum.app.repository.UserRepository;
+import com.momentum.app.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,16 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -33,11 +40,14 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
+        String token = jwtService.generateToken(savedUser);
+
         return AuthResponse.of(
                 "User registered successfully",
                 savedUser.getId(),
                 savedUser.getName(),
-                savedUser.getEmail()
+                savedUser.getEmail(),
+                token
         );
     }
 
@@ -51,11 +61,14 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
+        String token = jwtService.generateToken(user);
+
         return AuthResponse.of(
                 "Login successful",
                 user.getId(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                token
         );
     }
 }
