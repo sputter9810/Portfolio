@@ -4,11 +4,12 @@ import com.momentum.app.dto.task.CreateTaskRequest;
 import com.momentum.app.dto.task.TaskResponse;
 import com.momentum.app.dto.task.UpdateTaskRequest;
 import com.momentum.app.model.TaskStatus;
+import com.momentum.app.model.User;
 import com.momentum.app.service.TaskService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,45 +24,48 @@ public class TaskController {
     }
 
     @PostMapping
-    public TaskResponse createTask(@Valid @RequestBody CreateTaskRequest request) {
-        return taskService.createTask(request);
+    public TaskResponse createTask(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody CreateTaskRequest request
+    ) {
+        return taskService.createTask(user, request);
     }
 
     @GetMapping
     public List<TaskResponse> getAllTasks(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal User user,
             @RequestParam(required = false) TaskStatus status
     ) {
         if (status != null) {
-            return taskService.getTasksByStatus(userId, status);
+            return taskService.getTasksByStatus(user, status);
         }
 
-        return taskService.getAllTasks(userId);
+        return taskService.getAllTasks(user);
     }
 
     @GetMapping("/{id}")
     public TaskResponse getTaskById(
-            @PathVariable Long id,
-            @RequestParam Long userId
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id
     ) {
-        return taskService.getTaskById(id, userId);
+        return taskService.getTaskById(user, id);
     }
 
     @PutMapping("/{id}")
     public TaskResponse updateTask(
+            @AuthenticationPrincipal User user,
             @PathVariable Long id,
-            @RequestParam Long userId,
             @Valid @RequestBody UpdateTaskRequest request
     ) {
-        return taskService.updateTask(id, userId, request);
+        return taskService.updateTask(user, id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(
-            @PathVariable Long id,
-            @RequestParam Long userId
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id
     ) {
-        taskService.deleteTask(id, userId);
+        taskService.deleteTask(user, id);
     }
 }

@@ -4,12 +4,10 @@ import com.momentum.app.dto.task.CreateTaskRequest;
 import com.momentum.app.dto.task.TaskResponse;
 import com.momentum.app.dto.task.UpdateTaskRequest;
 import com.momentum.app.exception.TaskNotFoundException;
-import com.momentum.app.exception.UserNotFoundException;
 import com.momentum.app.model.Task;
 import com.momentum.app.model.TaskStatus;
 import com.momentum.app.model.User;
 import com.momentum.app.repository.TaskRepository;
-import com.momentum.app.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,17 +16,12 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
     }
 
-    public TaskResponse createTask(CreateTaskRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + request.getUserId()));
-
+    public TaskResponse createTask(User user, CreateTaskRequest request) {
         Task task = new Task();
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
@@ -40,27 +33,27 @@ public class TaskService {
         return TaskResponse.from(savedTask);
     }
 
-    public List<TaskResponse> getAllTasks(Long userId) {
-        return taskRepository.findByUserId(userId)
+    public List<TaskResponse> getAllTasks(User user) {
+        return taskRepository.findByUserId(user.getId())
                 .stream()
                 .map(TaskResponse::from)
                 .toList();
     }
 
-    public List<TaskResponse> getTasksByStatus(Long userId, TaskStatus status) {
-        return taskRepository.findByUserIdAndStatus(userId, status)
+    public List<TaskResponse> getTasksByStatus(User user, TaskStatus status) {
+        return taskRepository.findByUserIdAndStatus(user.getId(), status)
                 .stream()
                 .map(TaskResponse::from)
                 .toList();
     }
 
-    public TaskResponse getTaskById(Long id, Long userId) {
-        Task task = findTaskOrThrow(id, userId);
+    public TaskResponse getTaskById(User user, Long id) {
+        Task task = findTaskOrThrow(user, id);
         return TaskResponse.from(task);
     }
 
-    public TaskResponse updateTask(Long id, Long userId, UpdateTaskRequest request) {
-        Task task = findTaskOrThrow(id, userId);
+    public TaskResponse updateTask(User user, Long id, UpdateTaskRequest request) {
+        Task task = findTaskOrThrow(user, id);
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
@@ -74,13 +67,13 @@ public class TaskService {
         return TaskResponse.from(updatedTask);
     }
 
-    public void deleteTask(Long id, Long userId) {
-        Task task = findTaskOrThrow(id, userId);
+    public void deleteTask(User user, Long id) {
+        Task task = findTaskOrThrow(user, id);
         taskRepository.delete(task);
     }
 
-    private Task findTaskOrThrow(Long id, Long userId) {
-        return taskRepository.findByIdAndUserId(id, userId)
+    private Task findTaskOrThrow(User user, Long id) {
+        return taskRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + id));
     }
 }
