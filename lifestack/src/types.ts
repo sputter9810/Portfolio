@@ -37,3 +37,10 @@ export type ScheduledSession = {
   completed: boolean;
   locked: boolean;
 };
+
+export type CaptureItem = {
+  id: string;
+  text: string;
+  createdAt: string;
+  processed: boolean;
+};

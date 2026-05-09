@@ -1,20 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./index.css";
 import type {
   Activity,
   ActivityCategory,
   ActivityPriority,
   ActivityStatus,
+  CaptureItem,
   ScheduledSession,
   TimeOfDay,
 } from "./types";
 
-type View = "dashboard" | "activities" | "schedule" | "ai";
+type View = "dashboard" | "activities" | "schedule" | "inbox" | "ai";
 
-const navItems: View[] = ["dashboard", "activities", "schedule", "ai"];
+type BackupData = {
+  version: string;
+  exportedAt: string;
+  activities: Activity[];
+  schedule: ScheduledSession[];
+  captures: CaptureItem[];
+};
+
+const navItems: View[] = ["dashboard", "activities", "schedule", "inbox", "ai"];
 
 const ACTIVITIES_KEY = "lifestack.activities";
 const SCHEDULE_KEY = "lifestack.schedule";
+const CAPTURES_KEY = "lifestack.captures";
 
 const weekDays = [
   "Monday",
@@ -101,25 +111,60 @@ function normaliseActivity(activity: Activity): Activity {
   };
 }
 
+function normaliseSession(session: ScheduledSession): ScheduledSession {
+  return {
+    ...session,
+    locked: session.locked ?? false,
+    completed: session.completed ?? false,
+  };
+}
+
+function normaliseCapture(capture: CaptureItem): CaptureItem {
+  return {
+    ...capture,
+    processed: capture.processed ?? false,
+    createdAt: capture.createdAt ?? new Date().toISOString(),
+  };
+}
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [schedule, setSchedule] = useState<ScheduledSession[]>([]);
+  const [captures, setCaptures] = useState<CaptureItem[]>([]);
+  const [captureText, setCaptureText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formActivity, setFormActivity] = useState<Activity>(emptyActivity());
   const [copyStatus, setCopyStatus] = useState("");
   const [movingSessionId, setMovingSessionId] = useState<string | null>(null);
+  const [dataMessage, setDataMessage] = useState("");
+
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const savedActivities = localStorage.getItem(ACTIVITIES_KEY);
     const savedSchedule = localStorage.getItem(SCHEDULE_KEY);
+    const savedCaptures = localStorage.getItem(CAPTURES_KEY);
 
     if (savedActivities) {
       setActivities(JSON.parse(savedActivities).map(normaliseActivity));
     }
 
     if (savedSchedule) {
-      setSchedule(JSON.parse(savedSchedule));
+      setSchedule(JSON.parse(savedSchedule).map(normaliseSession));
+    }
+
+    if (savedCaptures) {
+      setCaptures(JSON.parse(savedCaptures).map(normaliseCapture));
     }
   }, []);
 
@@ -149,6 +194,11 @@ export default function App() {
       })
       .join("\n\n");
 
+    const captureSummary = captures
+      .filter((capture) => !capture.processed)
+      .map((capture) => `- ${capture.text}`)
+      .join("\n");
+
     return `You are helping me review my weekly personal progress schedule.
 
 My goals:
@@ -157,6 +207,7 @@ My goals:
 - Avoid overloading heavy fitness sessions on the same day.
 - Avoid unnecessary duplicate sessions on the same day.
 - Keep the plan realistic and sustainable.
+- Consider unprocessed inbox captures if they affect planning.
 
 Activities:
 ${activitySummary || "No activities added yet."}
@@ -164,13 +215,16 @@ ${activitySummary || "No activities added yet."}
 Current generated schedule:
 ${scheduleSummary || "No schedule generated yet."}
 
+Unprocessed inbox captures:
+${captureSummary || "No unprocessed captures."}
+
 Please:
 1. Review whether this schedule is balanced.
 2. Identify overloaded days or weak spots.
 3. Suggest changes while respecting locked sessions.
-4. Explain the reasoning briefly.
+4. Identify whether any inbox captures should become tasks, activities, or notes.
 5. Give me a revised weekly schedule in a clear day-by-day format.`;
-  }, [activities, schedule]);
+  }, [activities, schedule, captures]);
 
   function saveActivities(next: Activity[]) {
     setActivities(next);
@@ -180,6 +234,11 @@ Please:
   function saveSchedule(next: ScheduledSession[]) {
     setSchedule(next);
     localStorage.setItem(SCHEDULE_KEY, JSON.stringify(next));
+  }
+
+  function saveCaptures(next: CaptureItem[]) {
+    setCaptures(next);
+    localStorage.setItem(CAPTURES_KEY, JSON.stringify(next));
   }
 
   function updateForm<K extends keyof Activity>(key: K, value: Activity[K]) {
@@ -247,6 +306,42 @@ Please:
     }
   }
 
+  function addCapture() {
+    const text = captureText.trim();
+
+    if (!text) return;
+
+    const newCapture: CaptureItem = {
+      id: crypto.randomUUID(),
+      text,
+      createdAt: new Date().toISOString(),
+      processed: false,
+    };
+
+    saveCaptures([newCapture, ...captures]);
+    setCaptureText("");
+  }
+
+  function toggleCaptureProcessed(id: string) {
+    saveCaptures(
+      captures.map((capture) =>
+        capture.id === id
+          ? { ...capture, processed: !capture.processed }
+          : capture
+      )
+    );
+  }
+
+  function deleteCapture(id: string) {
+    saveCaptures(captures.filter((capture) => capture.id !== id));
+  }
+
+  function clearProcessedCaptures() {
+    saveCaptures(captures.filter((capture) => !capture.processed));
+    setDataMessage("Processed captures cleared.");
+    window.setTimeout(() => setDataMessage(""), 2400);
+  }
+
   function addSession(
     generated: ScheduledSession[],
     activity: Activity,
@@ -308,7 +403,10 @@ Please:
     );
 
     for (const activity of lockedActivities) {
-      const lockedDays = activity.preferredDays.slice(0, activity.frequencyPerWeek);
+      const lockedDays = activity.preferredDays.slice(
+        0,
+        activity.frequencyPerWeek
+      );
 
       for (const day of lockedDays) {
         addSession(
@@ -323,7 +421,8 @@ Please:
       }
 
       if (activity.frequencyPerWeek > activity.preferredDays.length) {
-        const extraNeeded = activity.frequencyPerWeek - activity.preferredDays.length;
+        const extraNeeded =
+          activity.frequencyPerWeek - activity.preferredDays.length;
         const existingActivityDays = new Set(activity.preferredDays);
 
         for (let i = 0; i < extraNeeded; i++) {
@@ -439,6 +538,85 @@ Please:
     setMovingSessionId(null);
   }
 
+  function weeklyReset() {
+    const resetSchedule = schedule.map((session) => ({
+      ...session,
+      completed: false,
+    }));
+
+    saveSchedule(resetSchedule);
+    setMovingSessionId(null);
+    setDataMessage("Weekly reset complete. Completed sessions were cleared.");
+    window.setTimeout(() => setDataMessage(""), 2400);
+  }
+
+  function weeklyResetAndRegenerate() {
+    generateSchedule();
+    setDataMessage("Weekly reset complete. A fresh schedule was generated.");
+    window.setTimeout(() => setDataMessage(""), 2400);
+  }
+
+  function exportBackup() {
+    const backup: BackupData = {
+      version: "0.1.0",
+      exportedAt: new Date().toISOString(),
+      activities,
+      schedule,
+      captures,
+    };
+
+    const file = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `lifestack-backup-${new Date()
+      .toISOString()
+      .slice(0, 10)}.json`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+
+    setDataMessage("Backup exported.");
+    window.setTimeout(() => setDataMessage(""), 2400);
+  }
+
+  function importBackupFile(file: File | undefined) {
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result)) as BackupData;
+
+        if (!Array.isArray(parsed.activities) || !Array.isArray(parsed.schedule)) {
+          throw new Error("Invalid LifeStack backup file.");
+        }
+
+        const importedActivities = parsed.activities.map(normaliseActivity);
+        const importedSchedule = parsed.schedule.map(normaliseSession);
+        const importedCaptures = Array.isArray(parsed.captures)
+          ? parsed.captures.map(normaliseCapture)
+          : [];
+
+        saveActivities(importedActivities);
+        saveSchedule(importedSchedule);
+        saveCaptures(importedCaptures);
+
+        setDataMessage("Backup imported successfully.");
+        window.setTimeout(() => setDataMessage(""), 2400);
+      } catch {
+        setDataMessage("Import failed. Please choose a valid LifeStack backup.");
+        window.setTimeout(() => setDataMessage(""), 3200);
+      }
+    };
+
+    reader.readAsText(file);
+  }
+
   async function copyAiPrompt() {
     await navigator.clipboard.writeText(aiPrompt);
     setCopyStatus("Copied!");
@@ -446,6 +624,8 @@ Please:
   }
 
   const completed = schedule.filter((session) => session.completed).length;
+  const unprocessedCaptures = captures.filter((capture) => !capture.processed);
+  const processedCaptures = captures.filter((capture) => capture.processed);
 
   return (
     <div className="app-shell">
@@ -467,6 +647,8 @@ Please:
       </aside>
 
       <main className="main-content">
+        {dataMessage && <div className="status-banner">{dataMessage}</div>}
+
         {view === "dashboard" && (
           <section>
             <p className="eyebrow">Overview</p>
@@ -497,11 +679,61 @@ Please:
               </div>
 
               <div className="stat-card">
-                <span>Progress</span>
-                <strong>
-                  {completed} / {schedule.length}
-                </strong>
+                <span>Inbox</span>
+                <strong>{unprocessedCaptures.length}</strong>
               </div>
+            </div>
+
+            <div className="utility-grid">
+              <article className="card">
+                <h3>Weekly reset</h3>
+                <p className="muted">
+                  Start a new week without changing your activities.
+                </p>
+
+                <div className="row-actions utility-actions">
+                  <button className="secondary-button" onClick={weeklyReset}>
+                    Clear Completion
+                  </button>
+
+                  <button
+                    className="primary-button"
+                    onClick={weeklyResetAndRegenerate}
+                  >
+                    Reset + Regenerate
+                  </button>
+                </div>
+              </article>
+
+              <article className="card">
+                <h3>Backup & restore</h3>
+                <p className="muted">
+                  Export your local LifeStack data or restore from a backup.
+                </p>
+
+                <div className="row-actions utility-actions">
+                  <button className="secondary-button" onClick={exportBackup}>
+                    Export Backup
+                  </button>
+
+                  <button
+                    className="secondary-button"
+                    onClick={() => importInputRef.current?.click()}
+                  >
+                    Import Backup
+                  </button>
+
+                  <input
+                    ref={importInputRef}
+                    className="hidden-file-input"
+                    type="file"
+                    accept="application/json"
+                    onChange={(event) =>
+                      importBackupFile(event.target.files?.[0])
+                    }
+                  />
+                </div>
+              </article>
             </div>
           </section>
         )}
@@ -726,6 +958,10 @@ Please:
                   Regenerate
                 </button>
 
+                <button className="secondary-button" onClick={weeklyReset}>
+                  Weekly Reset
+                </button>
+
                 <button className="danger-button" onClick={clearSchedule}>
                   Clear
                 </button>
@@ -830,6 +1066,118 @@ Please:
                   </div>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {view === "inbox" && (
+          <section>
+            <p className="eyebrow">Quick capture</p>
+
+            <div className="page-header">
+              <div>
+                <h2>Inbox</h2>
+                <p className="muted">
+                  Dump thoughts here first. Process them into modules later.
+                </p>
+              </div>
+
+              <button
+                className="secondary-button"
+                onClick={clearProcessedCaptures}
+              >
+                Clear Processed
+              </button>
+            </div>
+
+            <form
+              className="card capture-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                addCapture();
+              }}
+            >
+              <textarea
+                value={captureText}
+                onChange={(event) => setCaptureText(event.target.value)}
+                placeholder="Capture a thought, project idea, meal note, training reminder..."
+              />
+
+              <button className="primary-button">Add Capture</button>
+            </form>
+
+            <div className="capture-grid">
+              <article className="card">
+                <h3>Unprocessed</h3>
+
+                <div className="capture-list">
+                  {unprocessedCaptures.length === 0 ? (
+                    <p className="muted">No open captures.</p>
+                  ) : (
+                    unprocessedCaptures.map((capture) => (
+                      <div key={capture.id} className="capture-item">
+                        <p>{capture.text}</p>
+
+                        <div className="capture-meta-row">
+                          <span>{formatDateTime(capture.createdAt)}</span>
+
+                          <div className="row-actions">
+                            <button
+                              className="secondary-button compact-button"
+                              onClick={() => toggleCaptureProcessed(capture.id)}
+                            >
+                              Processed
+                            </button>
+
+                            <button
+                              className="danger-button compact-button"
+                              onClick={() => deleteCapture(capture.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </article>
+
+              <article className="card">
+                <h3>Processed</h3>
+
+                <div className="capture-list">
+                  {processedCaptures.length === 0 ? (
+                    <p className="muted">Processed captures will appear here.</p>
+                  ) : (
+                    processedCaptures.map((capture) => (
+                      <div key={capture.id} className="capture-item processed">
+                        <p>{capture.text}</p>
+
+                        <div className="capture-meta-row">
+                          <span>{formatDateTime(capture.createdAt)}</span>
+
+                          <div className="row-actions">
+                            <button
+                              className="secondary-button compact-button"
+                              onClick={() => toggleCaptureProcessed(capture.id)}
+                            >
+                              Reopen
+                            </button>
+
+                            <button
+                              className="danger-button compact-button"
+                              onClick={() => deleteCapture(capture.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </article>
             </div>
           </section>
         )}
