@@ -1,0 +1,30 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f6f7fb;
+  color: #1f2937;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 48px;
+}
+
+h1 {
+  margin-top: 0;
+}
