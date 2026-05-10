@@ -1,0 +1,5 @@
+node_modules/
+lifestack/node_modules/
+dist/
+lifestack/dist/
+.env
