@@ -44,3 +44,50 @@ export type CaptureItem = {
   createdAt: string;
   processed: boolean;
 };
+
+export type ProjectStatus =
+  | "planning"
+  | "active"
+  | "polishing"
+  | "released"
+  | "maintenance"
+  | "shelved"
+  | "archived";
+
+export type ProjectPriority = "low" | "medium" | "high";
+
+export type ProjectMilestone = {
+  id: string;
+  title: string;
+  targetVersion: string;
+  completed: boolean;
+  notes: string;
+};
+
+export type PortfolioChecklist = {
+  readmeComplete: boolean;
+  deployed: boolean;
+  githubClean: boolean;
+  screenshotsAdded: boolean;
+  mobileResponsive: boolean;
+  versionOneReleased: boolean;
+};
+
+export type Project = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: ProjectStatus;
+  priority: ProjectPriority;
+  currentVersion: string;
+  targetVersion: string;
+  techStack: string;
+  nextAction: string;
+  blockers: string;
+  linkedActivityId: string;
+  milestones: ProjectMilestone[];
+  portfolioChecklist: PortfolioChecklist;
+  createdAt: string;
+  updatedAt: string;
+};

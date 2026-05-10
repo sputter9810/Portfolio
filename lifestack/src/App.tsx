@@ -6,11 +6,15 @@ import type {
   ActivityPriority,
   ActivityStatus,
   CaptureItem,
+  Project,
+  ProjectMilestone,
+  ProjectPriority,
+  ProjectStatus,
   ScheduledSession,
   TimeOfDay,
 } from "./types";
 
-type View = "dashboard" | "activities" | "schedule" | "inbox" | "ai";
+type View = "dashboard" | "activities" | "projects" | "schedule" | "inbox" | "ai";
 
 type BackupData = {
   version: string;
@@ -18,13 +22,22 @@ type BackupData = {
   activities: Activity[];
   schedule: ScheduledSession[];
   captures: CaptureItem[];
+  projects: Project[];
 };
 
-const navItems: View[] = ["dashboard", "activities", "schedule", "inbox", "ai"];
+const navItems: View[] = [
+  "dashboard",
+  "activities",
+  "projects",
+  "schedule",
+  "inbox",
+  "ai",
+];
 
 const ACTIVITIES_KEY = "lifestack.activities";
 const SCHEDULE_KEY = "lifestack.schedule";
 const CAPTURES_KEY = "lifestack.captures";
+const PROJECTS_KEY = "lifestack.projects";
 
 const weekDays = [
   "Monday",
@@ -101,6 +114,28 @@ function emptyActivity(): Activity {
   };
 }
 
+function emptyProject(): Project {
+  const now = new Date().toISOString();
+
+  return {
+    id: "",
+    name: "",
+    description: "",
+    category: "Software",
+    status: "planning",
+    priority: "medium",
+    currentVersion: "v0.1.0",
+    targetVersion: "v1.0.0",
+    techStack: "",
+    nextAction: "",
+    blockers: "",
+    linkedActivityId: "",
+    milestones: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 function normaliseActivity(activity: Activity): Activity {
   return {
     ...activity,
@@ -127,6 +162,23 @@ function normaliseCapture(capture: CaptureItem): CaptureItem {
   };
 }
 
+function normaliseProject(project: Project): Project {
+  const now = new Date().toISOString();
+
+  return {
+    ...emptyProject(),
+    ...project,
+    status: project.status ?? "planning",
+    priority: project.priority ?? "medium",
+    currentVersion: project.currentVersion ?? "v0.1.0",
+    targetVersion: project.targetVersion ?? "v1.0.0",
+    linkedActivityId: project.linkedActivityId ?? "",
+    milestones: Array.isArray(project.milestones) ? project.milestones : [],
+    createdAt: project.createdAt ?? now,
+    updatedAt: project.updatedAt ?? now,
+  };
+}
+
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-AU", {
     day: "2-digit",
@@ -136,14 +188,75 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
+function getProjectProgress(project: Project) {
+  if (project.milestones.length === 0) return 0;
+
+  const completed = project.milestones.filter(
+    (milestone) => milestone.completed
+  ).length;
+
+  return Math.round((completed / project.milestones.length) * 100);
+}
+
+function getDaysSinceUpdated(project: Project) {
+  const updated = new Date(project.updatedAt).getTime();
+  const now = Date.now();
+  const diff = now - updated;
+
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
+
+function getProjectHealthScore(project: Project) {
+  let score = 50;
+
+  if (project.priority === "high") score += 20;
+  if (project.priority === "medium") score += 10;
+
+  if (project.status === "active") score += 20;
+  if (project.status === "polishing") score += 18;
+  if (project.status === "planning") score += 8;
+  if (project.status === "maintenance") score += 5;
+  if (project.status === "released") score -= 5;
+  if (project.status === "shelved") score -= 20;
+  if (project.status === "archived") score -= 35;
+
+  score += Math.round(getProjectProgress(project) * 0.25);
+
+  if (project.nextAction.trim()) score += 10;
+  if (project.blockers.trim()) score -= 15;
+
+  const daysSinceUpdated = getDaysSinceUpdated(project);
+
+  if (daysSinceUpdated > 14) score -= 10;
+  if (daysSinceUpdated > 30) score -= 20;
+
+  return Math.min(100, Math.max(0, score));
+}
+
+function getRecommendedProject(projects: Project[]) {
+  const eligibleProjects = projects.filter((project) =>
+    ["planning", "active", "polishing", "maintenance"].includes(project.status)
+  );
+
+  if (eligibleProjects.length === 0) return null;
+
+  return [...eligibleProjects].sort(
+    (a, b) => getProjectHealthScore(b) - getProjectHealthScore(a)
+  )[0];
+}
+
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [schedule, setSchedule] = useState<ScheduledSession[]>([]);
   const [captures, setCaptures] = useState<CaptureItem[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [captureText, setCaptureText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [projectEditingId, setProjectEditingId] = useState<string | null>(null);
   const [formActivity, setFormActivity] = useState<Activity>(emptyActivity());
+  const [projectForm, setProjectForm] = useState<Project>(emptyProject());
+  const [milestoneDrafts, setMilestoneDrafts] = useState<Record<string, string>>({});
   const [copyStatus, setCopyStatus] = useState("");
   const [movingSessionId, setMovingSessionId] = useState<string | null>(null);
   const [dataMessage, setDataMessage] = useState("");
@@ -154,6 +267,7 @@ export default function App() {
     const savedActivities = localStorage.getItem(ACTIVITIES_KEY);
     const savedSchedule = localStorage.getItem(SCHEDULE_KEY);
     const savedCaptures = localStorage.getItem(CAPTURES_KEY);
+    const savedProjects = localStorage.getItem(PROJECTS_KEY);
 
     if (savedActivities) {
       setActivities(JSON.parse(savedActivities).map(normaliseActivity));
@@ -166,6 +280,10 @@ export default function App() {
     if (savedCaptures) {
       setCaptures(JSON.parse(savedCaptures).map(normaliseCapture));
     }
+
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects).map(normaliseProject));
+    }
   }, []);
 
   const aiPrompt = useMemo(() => {
@@ -173,7 +291,23 @@ export default function App() {
       .map((activity) => {
         const normalised = normaliseActivity(activity);
 
-        return `- ${normalised.name}: ${normalised.category}, ${normalised.status}, ${normalised.priority} priority, ${normalised.frequencyPerWeek}x/week, ${normalised.sessionLengthMinutes} min/session, preferred ${normalised.preferredDays.length > 0 ? normalised.preferredDays.join(", ") : "any day"}, ${normalised.preferredTime}, ${normalised.lockedDays ? "locked to preferred days" : "flexible"}. Notes: ${normalised.notes || "none"}`;
+        return `- ${normalised.name}: ${normalised.category}, ${normalised.status}, ${normalised.priority} priority, ${normalised.frequencyPerWeek}x/week, ${normalised.sessionLengthMinutes} min/session, preferred ${
+          normalised.preferredDays.length > 0
+            ? normalised.preferredDays.join(", ")
+            : "any day"
+        }, ${normalised.preferredTime}, ${
+          normalised.lockedDays ? "locked to preferred days" : "flexible"
+        }. Notes: ${normalised.notes || "none"}`;
+      })
+      .join("\n");
+
+    const projectSummary = projects
+      .map((project) => {
+        const completedMilestones = project.milestones.filter(
+          (milestone) => milestone.completed
+        ).length;
+
+        return `- ${project.name}: ${project.status}, ${project.priority} priority, current ${project.currentVersion}, target ${project.targetVersion}, ${completedMilestones}/${project.milestones.length} milestones complete. Progress: ${getProjectProgress(project)}%. Health: ${getProjectHealthScore(project)}%. Next action: ${project.nextAction || "none"}. Blockers: ${project.blockers || "none"}.`;
       })
       .join("\n");
 
@@ -199,7 +333,7 @@ export default function App() {
       .map((capture) => `- ${capture.text}`)
       .join("\n");
 
-    return `You are helping me review my weekly personal progress schedule.
+    return `You are helping me review my weekly personal progress schedule and project priorities.
 
 My goals:
 - Keep consistent progress across software projects, training, meals, hobbies, and life admin.
@@ -207,7 +341,11 @@ My goals:
 - Avoid overloading heavy fitness sessions on the same day.
 - Avoid unnecessary duplicate sessions on the same day.
 - Keep the plan realistic and sustainable.
+- Prioritise projects that are close to v1.0 or portfolio-ready.
 - Consider unprocessed inbox captures if they affect planning.
+
+Projects:
+${projectSummary || "No projects added yet."}
 
 Activities:
 ${activitySummary || "No activities added yet."}
@@ -223,8 +361,9 @@ Please:
 2. Identify overloaded days or weak spots.
 3. Suggest changes while respecting locked sessions.
 4. Identify whether any inbox captures should become tasks, activities, or notes.
-5. Give me a revised weekly schedule in a clear day-by-day format.`;
-  }, [activities, schedule, captures]);
+5. Recommend which project should be focused next and why.
+6. Give me a revised weekly schedule in a clear day-by-day format.`;
+  }, [activities, schedule, captures, projects]);
 
   function saveActivities(next: Activity[]) {
     setActivities(next);
@@ -241,8 +380,20 @@ Please:
     localStorage.setItem(CAPTURES_KEY, JSON.stringify(next));
   }
 
+  function saveProjects(next: Project[]) {
+    setProjects(next);
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(next));
+  }
+
   function updateForm<K extends keyof Activity>(key: K, value: Activity[K]) {
     setFormActivity((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
+  function updateProjectForm<K extends keyof Project>(key: K, value: Project[K]) {
+    setProjectForm((current) => ({
       ...current,
       [key]: value,
     }));
@@ -266,10 +417,21 @@ Please:
     setFormActivity(emptyActivity());
   }
 
+  function resetProjectForm() {
+    setProjectEditingId(null);
+    setProjectForm(emptyProject());
+  }
+
   function startEditing(activity: Activity) {
     setEditingId(activity.id);
     setFormActivity(normaliseActivity(activity));
     setView("activities");
+  }
+
+  function startEditingProject(project: Project) {
+    setProjectEditingId(project.id);
+    setProjectForm(normaliseProject(project));
+    setView("projects");
   }
 
   function upsertActivity() {
@@ -297,6 +459,30 @@ Please:
     resetForm();
   }
 
+  function upsertProject() {
+    const now = new Date().toISOString();
+
+    const project: Project = {
+      ...projectForm,
+      id: projectEditingId ?? crypto.randomUUID(),
+      name: projectForm.name.trim(),
+      createdAt: projectEditingId ? projectForm.createdAt : now,
+      updatedAt: now,
+    };
+
+    if (!project.name) return;
+
+    if (projectEditingId) {
+      saveProjects(
+        projects.map((item) => (item.id === projectEditingId ? project : item))
+      );
+    } else {
+      saveProjects([project, ...projects]);
+    }
+
+    resetProjectForm();
+  }
+
   function deleteActivity(id: string) {
     saveActivities(activities.filter((activity) => activity.id !== id));
     saveSchedule(schedule.filter((session) => session.activityId !== id));
@@ -304,6 +490,82 @@ Please:
     if (editingId === id) {
       resetForm();
     }
+  }
+
+  function deleteProject(id: string) {
+    saveProjects(projects.filter((project) => project.id !== id));
+
+    if (projectEditingId === id) {
+      resetProjectForm();
+    }
+  }
+
+  function addMilestone(projectId: string) {
+    const title = (milestoneDrafts[projectId] || "").trim();
+
+    if (!title) return;
+
+    const project = projects.find((item) => item.id === projectId);
+    const targetVersion = project?.targetVersion || "v1.0.0";
+
+    const milestone: ProjectMilestone = {
+      id: crypto.randomUUID(),
+      title,
+      targetVersion,
+      completed: false,
+      notes: "",
+    };
+
+    saveProjects(
+      projects.map((item) =>
+        item.id === projectId
+          ? {
+              ...item,
+              milestones: [...item.milestones, milestone],
+              updatedAt: new Date().toISOString(),
+            }
+          : item
+      )
+    );
+
+    setMilestoneDrafts((current) => ({
+      ...current,
+      [projectId]: "",
+    }));
+  }
+
+  function toggleMilestone(projectId: string, milestoneId: string) {
+    saveProjects(
+      projects.map((project) =>
+        project.id === projectId
+          ? {
+              ...project,
+              milestones: project.milestones.map((milestone) =>
+                milestone.id === milestoneId
+                  ? { ...milestone, completed: !milestone.completed }
+                  : milestone
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : project
+      )
+    );
+  }
+
+  function deleteMilestone(projectId: string, milestoneId: string) {
+    saveProjects(
+      projects.map((project) =>
+        project.id === projectId
+          ? {
+              ...project,
+              milestones: project.milestones.filter(
+                (milestone) => milestone.id !== milestoneId
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : project
+      )
+    );
   }
 
   function addCapture() {
@@ -558,11 +820,12 @@ Please:
 
   function exportBackup() {
     const backup: BackupData = {
-      version: "0.1.0",
+      version: "1.2.0",
       exportedAt: new Date().toISOString(),
       activities,
       schedule,
       captures,
+      projects,
     };
 
     const file = new Blob([JSON.stringify(backup, null, 2)], {
@@ -601,10 +864,14 @@ Please:
         const importedCaptures = Array.isArray(parsed.captures)
           ? parsed.captures.map(normaliseCapture)
           : [];
+        const importedProjects = Array.isArray(parsed.projects)
+          ? parsed.projects.map(normaliseProject)
+          : [];
 
         saveActivities(importedActivities);
         saveSchedule(importedSchedule);
         saveCaptures(importedCaptures);
+        saveProjects(importedProjects);
 
         setDataMessage("Backup imported successfully.");
         window.setTimeout(() => setDataMessage(""), 2400);
@@ -626,6 +893,15 @@ Please:
   const completed = schedule.filter((session) => session.completed).length;
   const unprocessedCaptures = captures.filter((capture) => !capture.processed);
   const processedCaptures = captures.filter((capture) => capture.processed);
+  const activeProjects = projects.filter((project) =>
+    ["planning", "active", "polishing", "maintenance"].includes(project.status)
+  );
+  const recommendedProject = getRecommendedProject(projects);
+  const nearReleaseProjects = projects.filter((project) => {
+    const progress = getProjectProgress(project);
+    return progress >= 70 && project.status !== "released";
+  });
+  const blockedProjects = projects.filter((project) => project.blockers.trim());
 
   return (
     <div className="app-shell">
@@ -674,8 +950,8 @@ Please:
               </div>
 
               <div className="stat-card">
-                <span>Sessions</span>
-                <strong>{schedule.length}</strong>
+                <span>Projects</span>
+                <strong>{activeProjects.length}</strong>
               </div>
 
               <div className="stat-card">
@@ -936,6 +1212,365 @@ Please:
                   </div>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {view === "projects" && (
+          <section>
+            <p className="eyebrow">Portfolio brain</p>
+
+            <div className="page-header">
+              <div>
+                <h2>{projectEditingId ? "Edit Project" : "Projects"}</h2>
+                <p className="muted">
+                  Track project versions, milestones, next actions, and shelf
+                  status.
+                </p>
+              </div>
+
+              {projectEditingId && (
+                <button className="secondary-button" onClick={resetProjectForm}>
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+
+            <div className="project-insights-grid">
+              <article className="card insight-card">
+                <span className="muted">Recommended focus</span>
+
+                {recommendedProject ? (
+                  <>
+                    <strong>{recommendedProject.name}</strong>
+                    <p className="muted">
+                      Health score: {getProjectHealthScore(recommendedProject)}%
+                    </p>
+                    <span className="pill recommended">focus next</span>
+                  </>
+                ) : (
+                  <p className="muted">No active projects to recommend yet.</p>
+                )}
+              </article>
+
+              <article className="card insight-card">
+                <span className="muted">Near release</span>
+                <strong>{nearReleaseProjects.length}</strong>
+                <p className="muted">Projects at 70%+ milestone completion.</p>
+              </article>
+
+              <article className="card insight-card">
+                <span className="muted">Blocked</span>
+                <strong>{blockedProjects.length}</strong>
+                <p className="muted">Projects with blockers or warning notes.</p>
+              </article>
+            </div>
+
+            <form
+              className="card project-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                upsertProject();
+              }}
+            >
+              <input
+                value={projectForm.name}
+                onChange={(event) =>
+                  updateProjectForm("name", event.target.value)
+                }
+                placeholder="Project name"
+              />
+
+              <textarea
+                value={projectForm.description}
+                onChange={(event) =>
+                  updateProjectForm("description", event.target.value)
+                }
+                placeholder="Project description"
+              />
+
+              <div className="form-grid">
+                <input
+                  value={projectForm.category}
+                  onChange={(event) =>
+                    updateProjectForm("category", event.target.value)
+                  }
+                  placeholder="Category"
+                />
+
+                <select
+                  value={projectForm.status}
+                  onChange={(event) =>
+                    updateProjectForm(
+                      "status",
+                      event.target.value as ProjectStatus
+                    )
+                  }
+                >
+                  <option value="planning">Planning</option>
+                  <option value="active">Active</option>
+                  <option value="polishing">Polishing</option>
+                  <option value="released">Released</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="shelved">Shelved</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+
+              <div className="form-grid">
+                <select
+                  value={projectForm.priority}
+                  onChange={(event) =>
+                    updateProjectForm(
+                      "priority",
+                      event.target.value as ProjectPriority
+                    )
+                  }
+                >
+                  <option value="high">High priority</option>
+                  <option value="medium">Medium priority</option>
+                  <option value="low">Low priority</option>
+                </select>
+
+                <select
+                  value={projectForm.linkedActivityId}
+                  onChange={(event) =>
+                    updateProjectForm("linkedActivityId", event.target.value)
+                  }
+                >
+                  <option value="">No linked activity</option>
+                  {activities.map((activity) => (
+                    <option key={activity.id} value={activity.id}>
+                      {activity.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-grid">
+                <input
+                  value={projectForm.currentVersion}
+                  onChange={(event) =>
+                    updateProjectForm("currentVersion", event.target.value)
+                  }
+                  placeholder="Current version e.g. v0.4.0"
+                />
+
+                <input
+                  value={projectForm.targetVersion}
+                  onChange={(event) =>
+                    updateProjectForm("targetVersion", event.target.value)
+                  }
+                  placeholder="Target version e.g. v1.0.0"
+                />
+              </div>
+
+              <input
+                value={projectForm.techStack}
+                onChange={(event) =>
+                  updateProjectForm("techStack", event.target.value)
+                }
+                placeholder="Tech stack e.g. React, TypeScript, Vite"
+              />
+
+              <textarea
+                value={projectForm.nextAction}
+                onChange={(event) =>
+                  updateProjectForm("nextAction", event.target.value)
+                }
+                placeholder="Next action"
+              />
+
+              <textarea
+                value={projectForm.blockers}
+                onChange={(event) =>
+                  updateProjectForm("blockers", event.target.value)
+                }
+                placeholder="Blockers / notes"
+              />
+
+              <button className="primary-button">
+                {projectEditingId ? "Update Project" : "Add Project"}
+              </button>
+            </form>
+
+            <div className="project-list">
+              {projects.length === 0 ? (
+                <article className="card">
+                  <p className="muted">
+                    No projects yet. Add LifeStack, Momentum, Game Manager, or
+                    Data Structure Visualiser to get started.
+                  </p>
+                </article>
+              ) : (
+                projects.map((project) => {
+                  const linkedActivity = activities.find(
+                    (activity) => activity.id === project.linkedActivityId
+                  );
+
+                  const completedMilestones = project.milestones.filter(
+                    (milestone) => milestone.completed
+                  ).length;
+
+                  return (
+                    <article key={project.id} className="card project-card">
+                      <div className="project-card-header">
+                        <div>
+                          <h3>{project.name}</h3>
+                          <p className="muted">{project.description}</p>
+                        </div>
+
+                        <div className="row-actions">
+                          <button
+                            className="secondary-button"
+                            onClick={() => startEditingProject(project)}
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            className="danger-button"
+                            onClick={() => deleteProject(project.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="project-meta-grid">
+                        <span className="pill">{project.status}</span>
+                        <span className="pill">{project.priority}</span>
+                        <span className="pill">
+                          {project.currentVersion} → {project.targetVersion}
+                        </span>
+
+                        {recommendedProject?.id === project.id && (
+                          <span className="pill recommended">
+                            recommended focus
+                          </span>
+                        )}
+
+                        {linkedActivity && (
+                          <span className="pill locked">
+                            linked: {linkedActivity.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="project-progress-row">
+                        <div className="project-card-footer">
+                          <span>Progress: {getProjectProgress(project)}%</span>
+                          <span>Health: {getProjectHealthScore(project)}%</span>
+                          <span>
+                            Updated {getDaysSinceUpdated(project)} days ago
+                          </span>
+                        </div>
+
+                        <div className="health-bar">
+                          <div
+                            className="health-fill"
+                            style={{
+                              width: `${getProjectHealthScore(project)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {project.techStack && (
+                        <p className="muted">Stack: {project.techStack}</p>
+                      )}
+
+                      {project.nextAction && (
+                        <div className="project-note">
+                          <strong>Next action</strong>
+                          <p>{project.nextAction}</p>
+                        </div>
+                      )}
+
+                      {project.blockers && (
+                        <div className="project-note warning-note">
+                          <strong>Blockers / notes</strong>
+                          <p>{project.blockers}</p>
+                        </div>
+                      )}
+
+                      <div className="milestone-section">
+                        <div className="milestone-header">
+                          <h4>
+                            Milestones {completedMilestones}/
+                            {project.milestones.length}
+                          </h4>
+                        </div>
+
+                        <div className="milestone-list">
+                          {project.milestones.length === 0 ? (
+                            <p className="muted">
+                              No milestones yet. Add what needs to be done
+                              before {project.targetVersion}.
+                            </p>
+                          ) : (
+                            project.milestones.map((milestone) => (
+                              <div
+                                key={milestone.id}
+                                className={
+                                  milestone.completed
+                                    ? "milestone-item complete"
+                                    : "milestone-item"
+                                }
+                              >
+                                <button
+                                  className="milestone-toggle"
+                                  onClick={() =>
+                                    toggleMilestone(project.id, milestone.id)
+                                  }
+                                >
+                                  {milestone.completed ? "✓" : ""}
+                                </button>
+
+                                <div>
+                                  <strong>{milestone.title}</strong>
+                                  <p className="muted">
+                                    Target: {milestone.targetVersion}
+                                  </p>
+                                </div>
+
+                                <button
+                                  className="danger-button compact-button"
+                                  onClick={() =>
+                                    deleteMilestone(project.id, milestone.id)
+                                  }
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        <div className="milestone-add-row">
+                          <input
+                            value={milestoneDrafts[project.id] || ""}
+                            onChange={(event) =>
+                              setMilestoneDrafts((current) => ({
+                                ...current,
+                                [project.id]: event.target.value,
+                              }))
+                            }
+                            placeholder={`Add milestone for ${project.targetVersion}`}
+                          />
+
+                          <button
+                            className="secondary-button"
+                            onClick={() => addMilestone(project.id)}
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })
+              )}
             </div>
           </section>
         )}
