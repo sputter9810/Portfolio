@@ -203,3 +203,52 @@ label {
     width: 100%;
   }
 }
+
+.dashboard-page {
+  display: grid;
+  gap: 24px;
+}
+
+.task-form {
+  display: grid;
+  gap: 18px;
+}
+
+.task-form textarea {
+  resize: vertical;
+}
+
+.task-content {
+  flex: 1;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.task-actions select {
+  width: auto;
+  min-width: 150px;
+}
+
+.danger-button {
+  background: #dc2626;
+}
+
+.danger-button:hover {
+  background: #b91c1c;
+}
+
+@media (max-width: 720px) {
+  .task-actions {
+    width: 100%;
+  }
+
+  .task-actions select,
+  .task-actions button {
+    width: 100%;
+  }
+}
