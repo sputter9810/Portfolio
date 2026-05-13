@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Panel from "../components/Panel";
+import DashboardLayout from "../layouts/DashboardLayout";
 import { createTask, deleteTask, getTasks, updateTask } from "../api/taskApi";
 import { getUser } from "../utils/authStorage";
 import { logoutUser } from "../utils/logout";
@@ -14,6 +16,7 @@ function DashboardPage() {
     title: "",
     description: "",
   });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +30,7 @@ function DashboardPage() {
       setTasks(data);
     } catch (err) {
       const message =
-        err.response?.data?.message || "Could not load tasks. Please try again.";
+        err.response?.data?.message || "Could not load tasks.";
 
       setError(message);
 
@@ -58,19 +61,23 @@ function DashboardPage() {
 
   async function handleCreateTask(event) {
     event.preventDefault();
+
     setError("");
     setIsCreating(true);
 
     try {
       await createTask(formData);
+
       setFormData({
         title: "",
         description: "",
       });
+
       await loadTasks(statusFilter);
     } catch (err) {
       const message =
-        err.response?.data?.message || "Could not create task. Please try again.";
+        err.response?.data?.message || "Could not create task.";
+
       setError(message);
     } finally {
       setIsCreating(false);
@@ -90,7 +97,8 @@ function DashboardPage() {
       await loadTasks(statusFilter);
     } catch (err) {
       const message =
-        err.response?.data?.message || "Could not update task. Please try again.";
+        err.response?.data?.message || "Could not update task.";
+
       setError(message);
     }
   }
@@ -103,34 +111,28 @@ function DashboardPage() {
       await loadTasks(statusFilter);
     } catch (err) {
       const message =
-        err.response?.data?.message || "Could not delete task. Please try again.";
+        err.response?.data?.message || "Could not delete task.";
+
       setError(message);
     }
   }
 
   return (
-    <main className="page dashboard-page">
-      <header className="dashboard-header">
-        <div>
-          <h1>Momentum Dashboard</h1>
-          {user && (
-            <p className="muted">
-              Logged in as <strong>{user.name}</strong> ({user.email})
-            </p>
-          )}
-        </div>
+    <DashboardLayout
+      title="Momentum Dashboard"
+      subtitle={
+        user
+          ? `Logged in as ${user.name} (${user.email})`
+          : "Authenticated workspace"
+      }
+      actions={<button onClick={handleLogout}>Logout</button>}
+    >
+      {error && <div className="alert error">{error}</div>}
 
-        <button onClick={handleLogout}>Logout</button>
-      </header>
-
-      <section className="panel">
-        <div className="section-header">
-          <div>
-            <h2>Create Task</h2>
-            <p className="muted">Add a task to your authenticated workspace.</p>
-          </div>
-        </div>
-
+      <Panel
+        title="Create Task"
+        subtitle="Add a task to your productivity workflow."
+      >
         <form className="task-form" onSubmit={handleCreateTask}>
           <label>
             Title
@@ -138,7 +140,7 @@ function DashboardPage() {
               name="title"
               value={formData.title}
               onChange={handleFormChange}
-              placeholder="e.g. Finish portfolio feature"
+              placeholder="e.g. Finish Momentum UI polish"
             />
           </label>
 
@@ -157,15 +159,12 @@ function DashboardPage() {
             {isCreating ? "Creating..." : "Create Task"}
           </button>
         </form>
-      </section>
+      </Panel>
 
-      <section className="panel">
-        <div className="section-header">
-          <div>
-            <h2>Your Tasks</h2>
-            <p className="muted">Tasks are loaded from your secured backend API.</p>
-          </div>
-
+      <Panel
+        title="Your Tasks"
+        subtitle="Tasks loaded from your secured backend."
+        actions={
           <label className="filter-label">
             Status
             <select
@@ -178,25 +177,24 @@ function DashboardPage() {
               <option value="DONE">DONE</option>
             </select>
           </label>
-        </div>
-
+        }
+      >
         {isLoading && <p className="muted">Loading tasks...</p>}
 
-        {error && <div className="alert error">{error}</div>}
-
-        {!isLoading && !error && tasks.length === 0 && (
+        {!isLoading && tasks.length === 0 && (
           <div className="empty-state">
             <h3>No tasks yet</h3>
             <p className="muted">Create your first task above.</p>
           </div>
         )}
 
-        {!isLoading && !error && tasks.length > 0 && (
+        {!isLoading && tasks.length > 0 && (
           <div className="task-list">
             {tasks.map((task) => (
               <article className="task-card" key={task.id}>
                 <div className="task-content">
                   <h3>{task.title}</h3>
+
                   {task.description && (
                     <p className="muted">{task.description}</p>
                   )}
@@ -229,8 +227,8 @@ function DashboardPage() {
             ))}
           </div>
         )}
-      </section>
-    </main>
+      </Panel>
+    </DashboardLayout>
   );
 }
 
