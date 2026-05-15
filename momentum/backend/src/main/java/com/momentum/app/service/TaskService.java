@@ -26,6 +26,11 @@ public class TaskService {
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
         task.setStatus(TaskStatus.TODO);
+
+        if (request.getPriority() != null) {
+            task.setPriority(request.getPriority());
+        }
+
         task.setUser(user);
 
         Task savedTask = taskRepository.save(task);
@@ -60,6 +65,10 @@ public class TaskService {
 
         if (request.getStatus() != null) {
             task.setStatus(request.getStatus());
+        }
+
+        if (request.getPriority() != null) {
+            task.setPriority(request.getPriority());
         }
 
         Task updatedTask = taskRepository.save(task);

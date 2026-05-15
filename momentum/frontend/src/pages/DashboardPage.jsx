@@ -15,6 +15,7 @@ function DashboardPage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    priority: "MEDIUM",
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +28,17 @@ function DashboardPage() {
 
     try {
       const data = await getTasks(status);
+
+      data.sort((a, b) => {
+        const priorityOrder = {
+          HIGH: 3,
+          MEDIUM: 2,
+          LOW: 1,
+        };
+
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      });
+
       setTasks(data);
     } catch (err) {
       const message =
@@ -71,6 +83,7 @@ function DashboardPage() {
       setFormData({
         title: "",
         description: "",
+        priority: "MEDIUM",
       });
 
       await loadTasks(statusFilter);
@@ -92,6 +105,7 @@ function DashboardPage() {
         title: task.title,
         description: task.description || "",
         status: newStatus,
+        priority: task.priority,
       });
 
       await loadTasks(statusFilter);
@@ -155,6 +169,19 @@ function DashboardPage() {
             />
           </label>
 
+          <label>
+            Priority
+            <select
+              name="priority"
+              value={formData.priority}
+              onChange={handleFormChange}
+            >
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+            </select>
+          </label>
+
           <button type="submit" disabled={isCreating}>
             {isCreating ? "Creating..." : "Create Task"}
           </button>
@@ -201,6 +228,12 @@ function DashboardPage() {
                 </div>
 
                 <div className="task-actions">
+                  <span
+                    className={`priority-pill priority-${task.priority.toLowerCase()}`}
+                  >
+                    {task.priority}
+                  </span>
+
                   <span className={`status-pill status-${task.status.toLowerCase()}`}>
                     {task.status}
                   </span>

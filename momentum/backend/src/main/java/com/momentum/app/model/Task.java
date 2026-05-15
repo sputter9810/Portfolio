@@ -1,6 +1,7 @@
 package com.momentum.app.model;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,12 +15,15 @@ public class Task {
     @Column(nullable = false)
     private String title;
 
-    @Column(length = 1000)
     private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.TODO;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private TaskPriority priority = TaskPriority.MEDIUM;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -28,27 +32,17 @@ public class Task {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public Task() {
-    }
-
-    public Task(String title, String description, TaskStatus status, User user) {
-        this.title = title;
-        this.description = description;
-        this.status = status;
-        this.user = user;
-    }
-
     @PrePersist
-    public void prePersist() {
-        if (this.status == null) {
-            this.status = TaskStatus.TODO;
-        }
-
-        this.createdAt = LocalDateTime.now();
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -75,6 +69,14 @@ public class Task {
         this.status = status;
     }
 
+    public TaskPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TaskPriority priority) {
+        this.priority = priority;
+    }
+
     public User getUser() {
         return user;
     }
@@ -85,5 +87,9 @@ public class Task {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
