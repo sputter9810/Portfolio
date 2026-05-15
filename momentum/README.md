@@ -331,13 +331,34 @@ backend/src/main/java/com/momentum/app
 
 ---
 
-## 📌 Future Improvements
+## 🎨 Frontend Features
+
+- React frontend
+- JWT authentication flow
+- Protected routes
+- Task dashboard
+- Task filtering
+- Create/update/delete tasks
+- Axios API integration
+- Responsive dashboard layout
 
 ### Frontend
-- React frontend
-- Dashboard UI
-- Responsive design
-- Protected frontend routes
+- React
+- React Router
+- Axios
+- Vite
+
+### Run frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📌 Future Improvements
 
 ### Features
 - Task priorities
