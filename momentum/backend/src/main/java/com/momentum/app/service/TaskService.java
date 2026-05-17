@@ -2,6 +2,7 @@ package com.momentum.app.service;
 
 import com.momentum.app.dto.task.CreateTaskRequest;
 import com.momentum.app.dto.task.TaskResponse;
+import com.momentum.app.dto.task.TaskStatisticsResponse;
 import com.momentum.app.dto.task.UpdateTaskRequest;
 import com.momentum.app.exception.TaskNotFoundException;
 import com.momentum.app.model.Task;
@@ -23,6 +24,7 @@ public class TaskService {
 
     public TaskResponse createTask(User user, CreateTaskRequest request) {
         Task task = new Task();
+
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
         task.setStatus(TaskStatus.TODO);
@@ -30,6 +32,8 @@ public class TaskService {
         if (request.getPriority() != null) {
             task.setPriority(request.getPriority());
         }
+
+        task.setDueDate(request.getDueDate());
 
         task.setUser(user);
 
@@ -71,6 +75,8 @@ public class TaskService {
             task.setPriority(request.getPriority());
         }
 
+        task.setDueDate(request.getDueDate());
+
         Task updatedTask = taskRepository.save(task);
 
         return TaskResponse.from(updatedTask);
@@ -79,6 +85,40 @@ public class TaskService {
     public void deleteTask(User user, Long id) {
         Task task = findTaskOrThrow(user, id);
         taskRepository.delete(task);
+    }
+
+    public TaskStatisticsResponse getTaskStatistics(User user) {
+        List<Task> tasks = taskRepository.findByUserId(user.getId());
+
+        long totalTasks = tasks.size();
+
+        long todoTasks = tasks.stream()
+                .filter(task -> task.getStatus() == TaskStatus.TODO)
+                .count();
+
+        long inProgressTasks = tasks.stream()
+                .filter(task -> task.getStatus() == TaskStatus.IN_PROGRESS)
+                .count();
+
+        long completedTasks = tasks.stream()
+                .filter(task -> task.getStatus() == TaskStatus.DONE)
+                .count();
+
+        double completionPercentage = totalTasks == 0
+                ? 0
+                : ((double) completedTasks / totalTasks) * 100;
+
+        TaskStatisticsResponse statistics = new TaskStatisticsResponse();
+
+        statistics.setTotalTasks(totalTasks);
+        statistics.setTodoTasks(todoTasks);
+        statistics.setInProgressTasks(inProgressTasks);
+        statistics.setCompletedTasks(completedTasks);
+        statistics.setCompletionPercentage(
+                Math.round(completionPercentage * 10.0) / 10.0
+        );
+
+        return statistics;
     }
 
     private Task findTaskOrThrow(User user, Long id) {

@@ -4,6 +4,8 @@ import com.momentum.app.model.TaskPriority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 public class CreateTaskRequest {
 
     @NotBlank(message = "Title is required")
@@ -15,13 +17,16 @@ public class CreateTaskRequest {
 
     private TaskPriority priority = TaskPriority.MEDIUM;
 
+    private LocalDate dueDate;
+
     public CreateTaskRequest() {
     }
 
-    public CreateTaskRequest(String title, String description, TaskPriority priority) {
+    public CreateTaskRequest(String title, String description, TaskPriority priority, LocalDate dueDate) {
         this.title = title;
         this.description = description;
         this.priority = priority;
+        this.dueDate = dueDate;
     }
 
     public String getTitle() {
@@ -46,5 +51,13 @@ public class CreateTaskRequest {
 
     public void setPriority(TaskPriority priority) {
         this.priority = priority;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 }

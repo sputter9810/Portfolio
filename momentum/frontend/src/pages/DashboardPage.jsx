@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Panel from "../components/Panel";
 import DashboardLayout from "../layouts/DashboardLayout";
-import { createTask, deleteTask, getTasks, updateTask } from "../api/taskApi";
+import {
+  createTask,
+  deleteTask,
+  getTasks,
+  getTaskStatistics,
+  updateTask,
+} from "../api/taskApi";
 import { getUser } from "../utils/authStorage";
 import { logoutUser } from "../utils/logout";
 
@@ -11,38 +17,57 @@ function DashboardPage() {
   const user = getUser();
 
   const [tasks, setTasks] = useState([]);
+  const [statistics, setStatistics] = useState(null);
+
   const [statusFilter, setStatusFilter] = useState("");
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "MEDIUM",
+    dueDate: "",
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+
   const [error, setError] = useState("");
 
-  async function loadTasks(status = "") {
+  async function loadDashboardData(status = "") {
     setIsLoading(true);
     setError("");
 
     try {
-      const data = await getTasks(status);
+      const [taskData, statisticsData] = await Promise.all([
+        getTasks(status),
+        getTaskStatistics(),
+      ]);
 
-      data.sort((a, b) => {
+      taskData.sort((a, b) => {
         const priorityOrder = {
           HIGH: 3,
           MEDIUM: 2,
           LOW: 1,
         };
 
-        return priorityOrder[b.priority] - priorityOrder[a.priority];
+        const priorityDifference =
+          priorityOrder[b.priority] - priorityOrder[a.priority];
+
+        if (priorityDifference !== 0) {
+          return priorityDifference;
+        }
+
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+
+        return new Date(a.dueDate) - new Date(b.dueDate);
       });
 
-      setTasks(data);
+      setTasks(taskData);
+      setStatistics(statisticsData);
     } catch (err) {
       const message =
-        err.response?.data?.message || "Could not load tasks.";
+        err.response?.data?.message || "Could not load dashboard.";
 
       setError(message);
 
@@ -55,7 +80,7 @@ function DashboardPage() {
   }
 
   useEffect(() => {
-    loadTasks(statusFilter);
+    loadDashboardData(statusFilter);
   }, [statusFilter]);
 
   function handleLogout() {
@@ -84,9 +109,10 @@ function DashboardPage() {
         title: "",
         description: "",
         priority: "MEDIUM",
+        dueDate: "",
       });
 
-      await loadTasks(statusFilter);
+      await loadDashboardData(statusFilter);
     } catch (err) {
       const message =
         err.response?.data?.message || "Could not create task.";
@@ -106,9 +132,10 @@ function DashboardPage() {
         description: task.description || "",
         status: newStatus,
         priority: task.priority,
+        dueDate: task.dueDate,
       });
 
-      await loadTasks(statusFilter);
+      await loadDashboardData(statusFilter);
     } catch (err) {
       const message =
         err.response?.data?.message || "Could not update task.";
@@ -122,13 +149,34 @@ function DashboardPage() {
 
     try {
       await deleteTask(taskId);
-      await loadTasks(statusFilter);
+
+      await loadDashboardData(statusFilter);
     } catch (err) {
       const message =
         err.response?.data?.message || "Could not delete task.";
 
       setError(message);
     }
+  }
+
+  function formatDueDate(dateString) {
+    if (!dateString) return null;
+
+    return new Date(dateString).toLocaleDateString();
+  }
+
+  function isOverdue(task) {
+    if (!task.dueDate || task.status === "DONE") {
+      return false;
+    }
+
+    const today = new Date();
+    const dueDate = new Date(task.dueDate);
+
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    return dueDate < today;
   }
 
   return (
@@ -142,6 +190,35 @@ function DashboardPage() {
       actions={<button onClick={handleLogout}>Logout</button>}
     >
       {error && <div className="alert error">{error}</div>}
+
+      {statistics && (
+        <section className="statistics-grid">
+          <article className="stat-card">
+            <span className="stat-label">Total Tasks</span>
+            <strong>{statistics.totalTasks}</strong>
+          </article>
+
+          <article className="stat-card">
+            <span className="stat-label">TODO</span>
+            <strong>{statistics.todoTasks}</strong>
+          </article>
+
+          <article className="stat-card">
+            <span className="stat-label">In Progress</span>
+            <strong>{statistics.inProgressTasks}</strong>
+          </article>
+
+          <article className="stat-card">
+            <span className="stat-label">Completed</span>
+            <strong>{statistics.completedTasks}</strong>
+          </article>
+
+          <article className="stat-card stat-card-highlight">
+            <span className="stat-label">Completion</span>
+            <strong>{statistics.completionPercentage}%</strong>
+          </article>
+        </section>
+      )}
 
       <Panel
         title="Create Task"
@@ -182,6 +259,16 @@ function DashboardPage() {
             </select>
           </label>
 
+          <label>
+            Due Date
+            <input
+              type="date"
+              name="dueDate"
+              value={formData.dueDate}
+              onChange={handleFormChange}
+            />
+          </label>
+
           <button type="submit" disabled={isCreating}>
             {isCreating ? "Creating..." : "Create Task"}
           </button>
@@ -218,12 +305,21 @@ function DashboardPage() {
         {!isLoading && tasks.length > 0 && (
           <div className="task-list">
             {tasks.map((task) => (
-              <article className="task-card" key={task.id}>
+              <article
+                className={`task-card ${isOverdue(task) ? "task-overdue" : ""}`}
+                key={task.id}
+              >
                 <div className="task-content">
                   <h3>{task.title}</h3>
 
                   {task.description && (
                     <p className="muted">{task.description}</p>
+                  )}
+
+                  {task.dueDate && (
+                    <p className={isOverdue(task) ? "due-date overdue" : "due-date"}>
+                      Due: {formatDueDate(task.dueDate)}
+                    </p>
                   )}
                 </div>
 

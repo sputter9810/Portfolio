@@ -1,29 +1,30 @@
 package com.momentum.app.security;
 
-import com.momentum.app.model.User;
-import com.momentum.app.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService,
+            CustomUserDetailsService customUserDetailsService
+    ) {
         this.jwtService = jwtService;
-        this.userRepository = userRepository;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Override
@@ -50,15 +51,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            User user = userRepository.findByEmail(email).orElse(null);
+        if (
+                email != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null
+        ) {
 
-            if (user != null && jwtService.isTokenValid(token, user)) {
+            UserDetails userDetails =
+                    customUserDetailsService.loadUserByUsername(email);
+
+            if (
+                userDetails instanceof CustomUserDetails customUserDetails &&
+                jwtService.isTokenValid(token, customUserDetails.getUser())
+            ) {
+
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
-                                user,
+                                userDetails,
                                 null,
-                                Collections.emptyList()
+                                userDetails.getAuthorities()
                         );
 
                 authenticationToken.setDetails(
