@@ -1,18 +1,40 @@
-function Panel({ title, subtitle, actions, children }) {
+import PropTypes from "prop-types";
+
+function Panel({
+  title,
+  subtitle,
+  actions,
+  children,
+}) {
   return (
     <section className="panel">
-      <div className="section-header">
-        <div>
-          <h2>{title}</h2>
-          {subtitle && <p className="muted">{subtitle}</p>}
+      {(title || subtitle || actions) && (
+        <div className="panel-header">
+          <div>
+            {title && <h2>{title}</h2>}
+            {subtitle && <p>{subtitle}</p>}
+          </div>
+
+          {actions && (
+            <div className="panel-actions">
+              {actions}
+            </div>
+          )}
         </div>
+      )}
 
-        {actions && <div>{actions}</div>}
+      <div className="panel-content">
+        {children}
       </div>
-
-      {children}
     </section>
   );
 }
+
+Panel.propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  actions: PropTypes.node,
+  children: PropTypes.node,
+};
 
 export default Panel;

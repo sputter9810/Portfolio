@@ -226,7 +226,11 @@ function DashboardPage() {
           ? `Logged in as ${user.name} (${user.email})`
           : "Authenticated workspace"
       }
-      actions={<button onClick={handleLogout}>Logout</button>}
+      actions={
+        <button className="primary-button" onClick={handleLogout}>
+          Logout
+        </button>
+      }
     >
       {error && <div className="alert error">{error}</div>}
 
@@ -263,159 +267,179 @@ function DashboardPage() {
         </section>
       )}
 
-      <Panel
-        title="Create Task"
-        subtitle="Add a task to your productivity workflow."
-      >
-        <form className="task-form" onSubmit={handleCreateTask}>
-          <label>
-            Title
-            <input
-              name="title"
-              value={formData.title}
-              onChange={handleFormChange}
-              placeholder="e.g. Finish Momentum UI polish"
-            />
-          </label>
+      <div className="dashboard-grid">
+        <Panel
+          title="Create Task"
+          subtitle="Add a task to your productivity workflow."
+        >
+          <form className="task-form" onSubmit={handleCreateTask}>
+            <label>
+              Title
+              <input
+                name="title"
+                value={formData.title}
+                onChange={handleFormChange}
+                placeholder="e.g. Finish Momentum UI polish"
+              />
+            </label>
 
-          <label>
-            Description
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleFormChange}
-              placeholder="Optional details..."
-              rows="3"
-            />
-          </label>
+            <label>
+              Description
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleFormChange}
+                placeholder="Optional details..."
+                rows="3"
+              />
+            </label>
 
-          <label>
-            Priority
-            <select
-              name="priority"
-              value={formData.priority}
-              onChange={handleFormChange}
-            >
-              <option value="LOW">LOW</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HIGH">HIGH</option>
-            </select>
-          </label>
-
-          <label>
-            Due Date
-            <input
-              type="date"
-              name="dueDate"
-              value={formData.dueDate}
-              onChange={handleFormChange}
-            />
-          </label>
-
-          <button type="submit" disabled={isCreating}>
-            {isCreating ? "Creating..." : "Create Task"}
-          </button>
-        </form>
-      </Panel>
-
-      <Panel
-        title="Your Tasks"
-        subtitle="Tasks loaded from your secured backend."
-        actions={
-          <div className="task-toolbar">
-            <input
-              className="search-input"
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-
-            <label className="filter-label">
-              Status
+            <label>
+              Priority
               <select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
+                name="priority"
+                value={formData.priority}
+                onChange={handleFormChange}
               >
-                <option value="">All</option>
-                <option value="TODO">TODO</option>
-                <option value="IN_PROGRESS">IN_PROGRESS</option>
-                <option value="DONE">DONE</option>
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
               </select>
             </label>
-          </div>
-        }
-      >
-        {isLoading && (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p className="muted">Loading tasks...</p>
-          </div>
-        )}
 
-        {!isLoading && tasks.length === 0 && (
-          <div className="empty-state">
-            <h3>No matching tasks</h3>
-            <p className="muted">
-              Try changing your search or filter settings.
-            </p>
-          </div>
-        )}
+            <label>
+              Due Date
+              <input
+                type="date"
+                name="dueDate"
+                value={formData.dueDate}
+                onChange={handleFormChange}
+              />
+            </label>
 
-        {!isLoading && tasks.length > 0 && (
-          <div className="task-list">
-            {tasks.map((task) => (
-              <article
-                className={`task-card ${isOverdue(task) ? "task-overdue" : ""}`}
-                key={task.id}
-              >
-                <div className="task-content">
-                  <h3>{task.title}</h3>
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={isCreating}
+            >
+              {isCreating ? "Creating..." : "Create Task"}
+            </button>
+          </form>
+        </Panel>
 
-                  {task.description && (
-                    <p className="muted">{task.description}</p>
-                  )}
+        <Panel
+          title="Your Tasks"
+          subtitle="Tasks loaded from your secured backend."
+          actions={
+            <div className="task-toolbar">
+              <input
+                className="search-input"
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
 
-                  {task.dueDate && (
-                    <p className={isOverdue(task) ? "due-date overdue" : "due-date"}>
-                      Due: {formatDueDate(task.dueDate)}
-                    </p>
-                  )}
-                </div>
+              <label className="filter-label">
+                Status
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                >
+                  <option value="">All</option>
+                  <option value="TODO">TODO</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="DONE">DONE</option>
+                </select>
+              </label>
+            </div>
+          }
+        >
+          {isLoading && (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p className="muted">Loading tasks...</p>
+            </div>
+          )}
 
-                <div className="task-actions">
-                  <span
-                    className={`priority-pill priority-${task.priority.toLowerCase()}`}
-                  >
-                    {task.priority}
-                  </span>
+          {!isLoading && tasks.length === 0 && (
+            <div className="empty-state">
+              <h3>No matching tasks</h3>
+              <p className="muted">
+                Try changing your search or filter settings.
+              </p>
+            </div>
+          )}
 
-                  <span className={`status-pill status-${task.status.toLowerCase()}`}>
-                    {task.status}
-                  </span>
+          {!isLoading && tasks.length > 0 && (
+            <div className="task-list">
+              {tasks.map((task) => (
+                <article
+                  className={`task-card ${
+                    isOverdue(task) ? "task-overdue" : ""
+                  }`}
+                  key={task.id}
+                >
+                  <div className="task-content">
+                    <div className="task-header-row">
+                      <h3>{task.title}</h3>
 
-                  <select
-                    value={task.status}
-                    onChange={(event) =>
-                      handleStatusChange(task, event.target.value)
-                    }
-                  >
-                    <option value="TODO">TODO</option>
-                    <option value="IN_PROGRESS">IN_PROGRESS</option>
-                    <option value="DONE">DONE</option>
-                  </select>
+                      <div className="task-badges">
+                        <span
+                          className={`priority-pill priority-${task.priority.toLowerCase()}`}
+                        >
+                          {task.priority}
+                        </span>
 
-                  <button
-                    className="danger-button"
-                    onClick={() => handleDeleteTask(task.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </Panel>
+                        <span
+                          className={`status-pill status-${task.status.toLowerCase()}`}
+                        >
+                          {task.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {task.description && (
+                      <p className="muted">{task.description}</p>
+                    )}
+
+                    {task.dueDate && (
+                      <p
+                        className={
+                          isOverdue(task)
+                            ? "due-date overdue"
+                            : "due-date"
+                        }
+                      >
+                        Due: {formatDueDate(task.dueDate)}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="task-actions">
+                    <select
+                      value={task.status}
+                      onChange={(event) =>
+                        handleStatusChange(task, event.target.value)
+                      }
+                    >
+                      <option value="TODO">TODO</option>
+                      <option value="IN_PROGRESS">IN_PROGRESS</option>
+                      <option value="DONE">DONE</option>
+                    </select>
+
+                    <button
+                      className="danger-button"
+                      onClick={() => handleDeleteTask(task.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </Panel>
+      </div>
     </DashboardLayout>
   );
 }
