@@ -32,6 +32,7 @@ function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
+  const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
 
   async function loadDashboardData(status = "", search = "") {
@@ -84,6 +85,16 @@ function DashboardPage() {
     loadDashboardData(statusFilter, searchTerm);
   }, [statusFilter, searchTerm]);
 
+  useEffect(() => {
+    if (!successMessage) return;
+
+    const timer = setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [successMessage]);
+
   function handleLogout() {
     logoutUser(navigate);
   }
@@ -101,6 +112,13 @@ function DashboardPage() {
     event.preventDefault();
 
     setError("");
+    setSuccessMessage("");
+
+    if (!formData.title.trim()) {
+      setError("Task title is required.");
+      return;
+    }
+
     setIsCreating(true);
 
     try {
@@ -112,6 +130,8 @@ function DashboardPage() {
         priority: "MEDIUM",
         dueDate: "",
       });
+
+      setSuccessMessage("Task created successfully.");
 
       await loadDashboardData(statusFilter, searchTerm);
     } catch (err) {
@@ -126,6 +146,7 @@ function DashboardPage() {
 
   async function handleStatusChange(task, newStatus) {
     setError("");
+    setSuccessMessage("");
 
     try {
       await updateTask(task.id, {
@@ -135,6 +156,8 @@ function DashboardPage() {
         priority: task.priority,
         dueDate: task.dueDate,
       });
+
+      setSuccessMessage(`Task updated to ${newStatus}.`);
 
       await loadDashboardData(statusFilter, searchTerm);
     } catch (err) {
@@ -146,10 +169,25 @@ function DashboardPage() {
   }
 
   async function handleDeleteTask(taskId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this task?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     setError("");
+    setSuccessMessage("");
 
     try {
       await deleteTask(taskId);
+
+      setSuccessMessage("Task deleted successfully.");
+
+      setTasks((currentTasks) =>
+        currentTasks.filter((task) => task.id !== taskId)
+      );
 
       await loadDashboardData(statusFilter, searchTerm);
     } catch (err) {
@@ -191,6 +229,10 @@ function DashboardPage() {
       actions={<button onClick={handleLogout}>Logout</button>}
     >
       {error && <div className="alert error">{error}</div>}
+
+      {successMessage && (
+        <div className="alert success">{successMessage}</div>
+      )}
 
       {statistics && (
         <section className="statistics-grid">
@@ -303,7 +345,12 @@ function DashboardPage() {
           </div>
         }
       >
-        {isLoading && <p className="muted">Loading tasks...</p>}
+        {isLoading && (
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p className="muted">Loading tasks...</p>
+          </div>
+        )}
 
         {!isLoading && tasks.length === 0 && (
           <div className="empty-state">
