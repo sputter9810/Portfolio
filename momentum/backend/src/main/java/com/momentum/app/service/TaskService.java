@@ -56,6 +56,28 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> searchTasks(User user, String search, TaskStatus status) {
+
+        List<Task> tasks;
+
+        if (status != null) {
+            tasks = taskRepository.findByUserIdAndTitleContainingIgnoreCaseAndStatus(
+                    user.getId(),
+                    search,
+                    status
+            );
+        } else {
+            tasks = taskRepository.findByUserIdAndTitleContainingIgnoreCase(
+                    user.getId(),
+                    search
+            );
+        }
+
+        return tasks.stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     public TaskResponse getTaskById(User user, Long id) {
         Task task = findTaskOrThrow(user, id);
         return TaskResponse.from(task);

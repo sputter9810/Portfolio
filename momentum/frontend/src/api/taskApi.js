@@ -1,7 +1,15 @@
 import apiClient from "./apiClient";
 
-export async function getTasks(status) {
-  const params = status ? { status } : {};
+export async function getTasks(status, search) {
+  const params = {};
+
+  if (status) {
+    params.status = status;
+  }
+
+  if (search) {
+    params.search = search;
+  }
 
   const response = await apiClient.get("/tasks", { params });
 

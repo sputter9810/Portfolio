@@ -20,6 +20,7 @@ function DashboardPage() {
   const [statistics, setStatistics] = useState(null);
 
   const [statusFilter, setStatusFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -33,13 +34,13 @@ function DashboardPage() {
 
   const [error, setError] = useState("");
 
-  async function loadDashboardData(status = "") {
+  async function loadDashboardData(status = "", search = "") {
     setIsLoading(true);
     setError("");
 
     try {
       const [taskData, statisticsData] = await Promise.all([
-        getTasks(status),
+        getTasks(status, search),
         getTaskStatistics(),
       ]);
 
@@ -80,8 +81,8 @@ function DashboardPage() {
   }
 
   useEffect(() => {
-    loadDashboardData(statusFilter);
-  }, [statusFilter]);
+    loadDashboardData(statusFilter, searchTerm);
+  }, [statusFilter, searchTerm]);
 
   function handleLogout() {
     logoutUser(navigate);
@@ -112,7 +113,7 @@ function DashboardPage() {
         dueDate: "",
       });
 
-      await loadDashboardData(statusFilter);
+      await loadDashboardData(statusFilter, searchTerm);
     } catch (err) {
       const message =
         err.response?.data?.message || "Could not create task.";
@@ -135,7 +136,7 @@ function DashboardPage() {
         dueDate: task.dueDate,
       });
 
-      await loadDashboardData(statusFilter);
+      await loadDashboardData(statusFilter, searchTerm);
     } catch (err) {
       const message =
         err.response?.data?.message || "Could not update task.";
@@ -150,7 +151,7 @@ function DashboardPage() {
     try {
       await deleteTask(taskId);
 
-      await loadDashboardData(statusFilter);
+      await loadDashboardData(statusFilter, searchTerm);
     } catch (err) {
       const message =
         err.response?.data?.message || "Could not delete task.";
@@ -279,26 +280,37 @@ function DashboardPage() {
         title="Your Tasks"
         subtitle="Tasks loaded from your secured backend."
         actions={
-          <label className="filter-label">
-            Status
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-            >
-              <option value="">All</option>
-              <option value="TODO">TODO</option>
-              <option value="IN_PROGRESS">IN_PROGRESS</option>
-              <option value="DONE">DONE</option>
-            </select>
-          </label>
+          <div className="task-toolbar">
+            <input
+              className="search-input"
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+
+            <label className="filter-label">
+              Status
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+              >
+                <option value="">All</option>
+                <option value="TODO">TODO</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="DONE">DONE</option>
+              </select>
+            </label>
+          </div>
         }
       >
         {isLoading && <p className="muted">Loading tasks...</p>}
 
         {!isLoading && tasks.length === 0 && (
           <div className="empty-state">
-            <h3>No tasks yet</h3>
-            <p className="muted">Create your first task above.</p>
+            <h3>No matching tasks</h3>
+            <p className="muted">
+              Try changing your search or filter settings.
+            </p>
           </div>
         )}
 

@@ -40,13 +40,20 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<List<TaskResponse>> getTasks(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) TaskStatus status
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) String search
     ) {
         User user = userDetails.getUser();
 
-        List<TaskResponse> tasks = status != null
-                ? taskService.getTasksByStatus(user, status)
-                : taskService.getAllTasks(user);
+        List<TaskResponse> tasks;
+
+        if (search != null && !search.isBlank()) {
+            tasks = taskService.searchTasks(user, search, status);
+        } else if (status != null) {
+            tasks = taskService.getTasksByStatus(user, status);
+        } else {
+            tasks = taskService.getAllTasks(user);
+        }
 
         return ResponseEntity.ok(tasks);
     }

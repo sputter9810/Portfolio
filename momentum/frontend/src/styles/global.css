@@ -347,3 +347,26 @@ textarea {
 .stat-card-highlight .stat-label {
   color: rgba(255, 255, 255, 0.85);
 }
+
+.task-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  min-width: 240px;
+}
+
+@media (max-width: 720px) {
+  .task-toolbar {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}
