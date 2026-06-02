@@ -1,0 +1,16 @@
+{
+  "Artificer": ["Alchemist", "Armorer", "Artillerist", "Battle Smith"],
+  "Barbarian": ["Ancestral Guardian", "Battlerager", "Beast", "Beserker", "Giant", "Storm Herald", "Totem Warrior", "Wild Magic", "Zealot"],
+  "Bard": ["Creation", "Eloquence", "Glamour", "Lore", "Spirits", "Swords", "Valor", "Whispers"],
+  "Blood Hunter": ["Ghostslayer", "Lycan", "Mutant", "Profane Soul"],
+  "Cleric": ["Arcana", "Death", "Forge", "Grave", "Knowledge", "Life", "Light", "Nature", "Order", "Peace", "Tempest", "Trickery", "Twilight", "War"],
+  "Druid": ["Dreams", "Land", "Moon", "Shepherd", "Spores", "Stars", "Wildfire"],
+  "Fighter": ["Arcane Archer", "Banneret", "Battle Master", "Cavalier", "Champion", "Echo Knight", "Eldritch Knight", "Psi Warrior", "Rune Knight", "Samurai"],
+  "Monk": ["Astral Self", "Ascendant Dragon", "Drunken Master", "Four Elements", "Kensei", "Long Death", "Mercy", "Open Hand", "Shadow", "Sun Soul"],
+  "Paladin": ["Ancients", "Conquest", "Crown", "Devotion", "Glory", "Redemption", "Vengeance", "Watchers", "Oathbreaker"],
+  "Ranger": ["Beast Master", "Fey Wanderer", "Glooms Stalker", "Horizen Walker", "Hunter", "Monster Slayer", "Swarmkeeper", "Drakewarden"],
+  "Rogue": ["Arcane Trickster", "Assassin", "Inquisitive", "Mastermind", "Phantom", "Scout", "Soulknife", "Swashbuckler", "Thief"],
+  "Sorcerer": ["Abberant Mind", "Clockwork Soul", "Draconic Bloodline", "Divine Soul", "Lunar Sorcerery", "Shadow Magic", "Storm Sorcery", "Wild Magic"],
+  "Warlock": ["Archfey", "Celestial", "Fathomless", "Fiend", "Genie", "Great Old One", "Hexblade", "Undead", "Undying"],
+  "Wizard": ["Abjuration", "Bladesinging", "Chronurgy", "Conjuration", "Divination", "Enchantment", "Evocation", "Graviturgy", "Illusion", "Necromancy", "Order of Scribes", "Transmutation", "War Magic"]
+}

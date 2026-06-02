@@ -1,0 +1,57 @@
+{
+  "Dragonborn": ["Black", "Blue", "Brass", "Bronze", "Copper", "Gold", "Green", "Red", "Silver", "White"],
+
+  "Dwarf": ["Hill Dwarf", "Mountain Dwarf", "Duergar"],
+
+  "Elf": ["High Elf", "Wood Elf", "Drow", "Eladrin", "Shadar-kai"],
+
+  "Gnome": ["Forest Gnome", "Rock Gnome", "Deep Gnome"],
+
+  "Half-Elf": ["Standard"],
+
+  "Half-Orc": ["Standard"],
+
+  "Halfling": ["Lightfoot", "Stout", "Ghostwise"],
+
+  "Human": ["Standard", "Variant"],
+
+  "Tiefling": ["Asmodeus", "Zariel", "Dispater", "Levistus"],
+
+  "Aarakocra": ["Standard"],
+
+  "Aasimar": ["Protector", "Scourge", "Fallen"],
+
+  "Firbolg": ["Standard"],
+
+  "Genasi": ["Air", "Earth", "Fire", "Water"],
+
+  "Goliath": ["Standard"],
+
+  "Kenku": ["Standard"],
+
+  "Tabaxi": ["Standard"],
+
+  "Tortle": ["Standard"],
+
+  "Goblin": ["Standard"],
+
+  "Hobgoblin": ["Standard"],
+
+  "Kobold": ["Standard"],
+
+  "Orc": ["Standard"],
+
+  "Yuan-ti": ["Pureblood"],
+
+  "Astral Elf": ["Standard"],
+
+  "Autognome": ["Standard"],
+
+  "Giff": ["Standard"],
+
+  "Hadozee": ["Standard"],
+
+  "Plasmoid": ["Standard"],
+
+  "Thri-kreen": ["Standard"]
+}

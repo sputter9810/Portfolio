@@ -1,0 +1,12 @@
+[
+  {
+    "id": "first_wizard",
+    "name": "First Wizard",
+    "description": "Play a Wizard for the first time"
+  },
+  {
+    "id": "all_classes",
+    "name": "Jack of All Trades",
+    "description": "Play every class at least once"
+  }
+]
